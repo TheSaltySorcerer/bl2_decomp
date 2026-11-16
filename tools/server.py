@@ -12,6 +12,7 @@ import os
 import sys
 import json
 import time
+import struct
 import argparse
 import subprocess
 from pathlib import Path
@@ -69,6 +70,25 @@ def get_function_disassembly(addr_hex: str, size: int) -> list:
         return []
 
 
+def extract_obj_code(obj_path: Path) -> bytes:
+    """Extracts raw compiled machine code bytes from MSVC COFF .obj file."""
+    if not obj_path.exists():
+        return b""
+    with open(obj_path, "rb") as f:
+        data = f.read()
+    if len(data) < 20:
+        return b""
+    num_sec = struct.unpack("<H", data[2:4])[0]
+    for i in range(num_sec):
+        hdr = 20 + i * 40
+        name = data[hdr:hdr+8].rstrip(b"\x00").decode("latin1", errors="ignore")
+        if name in (".text", ".text$mn"):
+            size = struct.unpack("<I", data[hdr+16:hdr+20])[0]
+            ptr = struct.unpack("<I", data[hdr+20:hdr+24])[0]
+            return data[ptr:ptr+size]
+    return b""
+
+
 def test_compile_match(unit_name: str, fn_addr: str, fn_size: int, candidate_code: str) -> tuple[bool, float, str]:
     """Compiles candidate code snippet with local MSVC and compares bytes against target binary."""
     scratch_dir = PROJECT_ROOT / "build" / "scratch"
@@ -107,8 +127,18 @@ def test_compile_match(unit_name: str, fn_addr: str, fn_size: int, candidate_cod
         f.seek(offset)
         target_bytes = f.read(fn_size)
 
-    # For now, if compiled cleanly without error and meets size criteria:
-    return True, 100.0, "Compilation successful."
+    compiled_code = extract_obj_code(test_obj)
+    if not compiled_code:
+        return False, 0.0, "Could not extract machine code from compiled object file."
+
+    if compiled_code == target_bytes:
+        return True, 100.0, "EXACT 100% BYTE MATCH!"
+
+    common_len = min(len(compiled_code), len(target_bytes))
+    matching_bytes = sum(1 for a, b in zip(compiled_code[:common_len], target_bytes[:common_len]) if a == b)
+    accuracy = (matching_bytes / max(len(target_bytes), len(compiled_code))) * 100.0
+    return False, accuracy, f"Parity mismatch: {matching_bytes}/{len(target_bytes)} bytes match ({accuracy:.1f}%), emitted {len(compiled_code)} bytes vs target {len(target_bytes)} bytes."
+
 
 
 class ClusterRequestHandler(BaseHTTPRequestHandler):
