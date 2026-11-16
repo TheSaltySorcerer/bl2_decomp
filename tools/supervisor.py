@@ -40,6 +40,23 @@ def set_hint(server_url: str, address: str, hint: str):
         print(f"Error setting hint: {e}")
         return None
 
+def set_unit_rule(server_url: str, unit: str, rule: str):
+    url = f"{server_url}/resolve_escalation"
+    payload = {
+        "unit": unit,
+        "action": "set_unit_rule",
+        "hints": rule,
+        "apply_to_unit": True
+    }
+    data = json.dumps(payload).encode("utf-8")
+    req = urllib.request.Request(url, data=data, headers={"Content-Type": "application/json"})
+    try:
+        with urllib.request.urlopen(req, timeout=10) as resp:
+            return json.loads(resp.read().decode("utf-8"))
+    except Exception as e:
+        print(f"Error setting unit rule: {e}")
+        return None
+
 def submit_solution(server_url: str, unit: str, address: str, size: int, code: str):
     url = f"{server_url}/submit"
     payload = {
@@ -68,6 +85,10 @@ def main():
     hint_p = subparsers.add_parser("hint", help="Inject architectural guideline / hint for a function")
     hint_p.add_argument("address", type=str)
     hint_p.add_argument("hint_text", type=str)
+
+    unit_p = subparsers.add_parser("unit-rule", help="Apply pattern rule to all functions across an entire unit")
+    unit_p.add_argument("unit", type=str)
+    unit_p.add_argument("rule_text", type=str)
 
     submit_p = subparsers.add_parser("submit", help="Submit verified supervisor C++ candidate")
     submit_p.add_argument("unit", type=str)
@@ -98,6 +119,10 @@ def main():
 
     elif args.cmd == "hint":
         res = set_hint(args.server, args.address, args.hint_text)
+        print(f"Result: {res}")
+
+    elif args.cmd == "unit-rule":
+        res = set_unit_rule(args.server, args.unit, args.rule_text)
         print(f"Result: {res}")
 
     elif args.cmd == "submit":

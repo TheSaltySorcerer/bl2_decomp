@@ -136,8 +136,8 @@ def run_worker():
         )
 
         current_prompt = prompt
-        for attempt in range(1, 4):
-            print(f"  -> Generating candidate C++ (Attempt {attempt}/3)...")
+        for attempt in range(1, 6):
+            print(f"  -> Generating candidate C++ (Attempt {attempt}/5)...")
             raw_response = query_local_llm(args.llm, args.model, current_prompt)
             candidate_code = clean_code_block(raw_response)
 

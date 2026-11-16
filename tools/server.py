@@ -45,7 +45,8 @@ LEASE_TIMEOUT_SECONDS = 60
 FAILURES_BY_ADDR = {}  # address -> {"count": int, "errors": list, "last_code": str, "workers": list, "tier_fails": dict}
 FUNCTION_TIERS = {}  # address -> int (1=1.5B, 2=7B, 3=14B, 4=Antigravity)
 ESCALATIONS = {}  # address -> dict
-MAX_TIER_FAILURES = 3  # 3 failures per tier before automatic step-up promotion
+MAX_TIER_FAILURES = 20  # 20 attempts per tier before step-up promotion
+UNIT_GUIDELINES = {}  # unit_name -> str (pattern guideline applied to all functions in unit)
 
 
 def get_function_tier(addr: str, size: int) -> int:
@@ -55,6 +56,26 @@ def get_function_tier(addr: str, size: int) -> int:
     tier = 1 if size <= 48 else 3
     FUNCTION_TIERS[addr] = tier
     return tier
+
+
+def get_combined_guidelines(unit_name: str, disasm: list, fn_hints: str) -> str:
+    """Combines individual function hints, unit guidelines, and opcode pattern guidelines."""
+    guidelines = []
+    if fn_hints:
+        guidelines.append(fn_hints)
+    if unit_name in UNIT_GUIDELINES:
+        guidelines.append(UNIT_GUIDELINES[unit_name])
+
+    # Pattern check: 32-bit __thiscall member methods
+    has_ret4 = any("ret" in i.get("mnemonic", "") and "4" in i.get("op_str", "") for i in disasm)
+    has_ecx_this = any("ecx" in i.get("op_str", "") for i in disasm)
+    if has_ret4 and has_ecx_this:
+        guidelines.append(
+            "PATTERN: This function is a 32-bit __thiscall member method taking 1 argument (callee cleanup ret 4). "
+            "Register ECX is 'this'. Write standard C++ field assignments (e.g. this->field = arg1) without inline __asm."
+        )
+
+    return "\n".join(guidelines)
 
 
 def save_escalations():
@@ -233,7 +254,7 @@ class ClusterRequestHandler(BaseHTTPRequestHandler):
                                 "size": size,
                                 "tier": fn_tier,
                                 "signature": fn.get("signature"),
-                                "hints": fn.get("hints", ""),
+                                "hints": get_combined_guidelines(unit_name, disasm, fn.get("hints", "")),
                                 "prior_feedback": feedback,
                                 "disassembly": disasm
                             }
@@ -371,8 +392,24 @@ class ClusterRequestHandler(BaseHTTPRequestHandler):
                 return self._send_json(400, {"error": "Invalid JSON"})
 
             fn_addr = data.get("address")
-            action = data.get("action", "reset")
+            action = data.get("action", "set_hint")
             hints = data.get("hints", "")
+            apply_unit = data.get("apply_to_unit", False)
+            target_unit = data.get("unit", "")
+
+            if apply_unit and target_unit:
+                UNIT_GUIDELINES[target_unit] = hints
+                manifest = load_manifest()
+                for u in manifest.get("units", []):
+                    if u.get("name") == target_unit:
+                        for fn in u.get("functions", []):
+                            fn_a = fn.get("address")
+                            FAILURES_BY_ADDR.pop(fn_a, None)
+                            FUNCTION_TIERS[fn_a] = 1 if fn.get("size", 32) <= 48 else 3
+                            ESCALATIONS.pop(fn_a, None)
+                save_escalations()
+                print(f"  {COLOR_GREEN}[SUPERVISOR APPLIED UNIT-WIDE PATTERN RULE]{COLOR_RESET} Unit '{target_unit}' -> {hints}")
+                return self._send_json(200, {"status": "resolved", "action": "set_unit_rule", "unit": target_unit})
 
             if action == "set_hint":
                 manifest = load_manifest()
@@ -382,12 +419,14 @@ class ClusterRequestHandler(BaseHTTPRequestHandler):
                             fn["hints"] = hints
                 save_manifest(manifest)
                 FAILURES_BY_ADDR.pop(fn_addr, None)
+                FUNCTION_TIERS[fn_addr] = 1 if fn.get("size", 32) <= 48 else 3
                 ESCALATIONS.pop(fn_addr, None)
                 save_escalations()
                 print(f"  {COLOR_GREEN}[SUPERVISOR APPLIED HINT]{COLOR_RESET} {fn_addr}: {hints}")
                 return self._send_json(200, {"status": "resolved", "action": "set_hint", "address": fn_addr})
             elif action == "reset":
                 FAILURES_BY_ADDR.pop(fn_addr, None)
+                FUNCTION_TIERS[fn_addr] = 1
                 ESCALATIONS.pop(fn_addr, None)
                 save_escalations()
                 return self._send_json(200, {"status": "resolved", "action": "reset", "address": fn_addr})
