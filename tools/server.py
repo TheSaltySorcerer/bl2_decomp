@@ -34,12 +34,30 @@ COLOR_BOLD = "\033[1m"
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 MANIFEST_PATH = PROJECT_ROOT / "build" / "units.json"
+ESCALATIONS_PATH = PROJECT_ROOT / "build" / "escalations.json"
+ALERT_FLAG_PATH = PROJECT_ROOT / "build" / "escalation_alert.flag"
 TARGET_IMAGE = Path(r"M:\BL2-64bit-lab\BL2-reference\Binaries\Win32\Borderlands2.exe")
 VCVARS_BAT = Path(r"C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\VC\Auxiliary\Build\vcvarsall.bat")
 
 # Global state
 ACTIVE_LEASES = {}  # address -> (worker_id, timestamp)
-LEASE_TIMEOUT_SECONDS = 180
+LEASE_TIMEOUT_SECONDS = 60
+FAILURES_BY_ADDR = {}  # address -> {"count": int, "errors": list, "last_code": str, "workers": list}
+ESCALATIONS = {}  # address -> dict
+ESCALATION_THRESHOLD = 5
+
+
+def save_escalations():
+    try:
+        with open(ESCALATIONS_PATH, "w", encoding="utf-8") as f:
+            json.dump(ESCALATIONS, f, indent=2)
+        if ESCALATIONS:
+            with open(ALERT_FLAG_PATH, "w", encoding="utf-8") as f:
+                f.write(f"ESCALATION_ALERT: {len(ESCALATIONS)} functions flagged at {time.ctime()}\n")
+        elif ALERT_FLAG_PATH.exists():
+            ALERT_FLAG_PATH.unlink(missing_ok=True)
+    except Exception as e:
+        print(f"Error saving escalations: {e}")
 
 
 def load_manifest() -> dict:
@@ -168,6 +186,10 @@ class ClusterRequestHandler(BaseHTTPRequestHandler):
                     addr = fn.get("address")
                     size = fn.get("size", 32)
                     if not fn.get("matched", False):
+                        # Skip escalated functions for standard workers
+                        if addr in ESCALATIONS and worker_id != "antigravity":
+                            continue
+
                         # Task routing funnel: small workers only get small functions (<= 64 bytes)
                         if worker_tier == "small" and size > 64:
                             continue
@@ -187,12 +209,27 @@ class ClusterRequestHandler(BaseHTTPRequestHandler):
                                 "name": fn.get("name"),
                                 "size": size,
                                 "signature": fn.get("signature"),
+                                "hints": fn.get("hints", ""),
                                 "disassembly": disasm
                             }
                             return self._send_json(200, resp)
 
             return self._send_json(200, {"status": "empty", "message": "All functions currently completed or leased."})
 
+        elif self.path == "/escalations":
+            return self._send_json(200, {
+                "count": len(ESCALATIONS),
+                "threshold": ESCALATION_THRESHOLD,
+                "escalations": ESCALATIONS
+            })
+        elif self.path.startswith("/release"):
+            from urllib.parse import urlparse, parse_qs
+            parsed = urlparse(self.path)
+            addr = parse_qs(parsed.query).get("address", [""])[0]
+            if addr:
+                ACTIVE_LEASES.pop(addr, None)
+                return self._send_json(200, {"status": "released", "address": addr})
+            return self._send_json(400, {"error": "Missing address"})
         elif self.path == "/setup.ps1":
             setup_script_path = Path(r"C:\MindVault\deploy_agent_bridge.ps1")
             if setup_script_path.exists():
@@ -219,6 +256,7 @@ class ClusterRequestHandler(BaseHTTPRequestHandler):
                 "total_functions": total_fns,
                 "matched_functions": matched_fns,
                 "active_leases": len(ACTIVE_LEASES),
+                "escalations": len(ESCALATIONS),
                 "target_image": TARGET_IMAGE.name
             })
         else:
@@ -237,8 +275,9 @@ class ClusterRequestHandler(BaseHTTPRequestHandler):
             fn_addr = data.get("address")
             fn_size = int(data.get("size", 32))
             code = data.get("code")
+            worker_id = data.get("worker_id", "unknown")
 
-            print(f"\n{COLOR_CYAN}[Cluster Submission]{COLOR_RESET} {fn_addr} from worker: {data.get('worker_id', 'unknown')}")
+            print(f"\n{COLOR_CYAN}[Cluster Submission]{COLOR_RESET} {fn_addr} from worker: {worker_id}")
 
             is_match, match_pct, detail = test_compile_match(unit_name, fn_addr, fn_size, code)
             if is_match and match_pct >= 100.0:
@@ -250,12 +289,71 @@ class ClusterRequestHandler(BaseHTTPRequestHandler):
                             fn["matched"] = True
                 save_manifest(manifest)
                 ACTIVE_LEASES.pop(fn_addr, None)
+                FAILURES_BY_ADDR.pop(fn_addr, None)
+                ESCALATIONS.pop(fn_addr, None)
+                save_escalations()
                 return self._send_json(200, {"status": "accepted", "match_pct": 100.0})
             else:
                 print(f"  {COLOR_RED}[REJECTED]{COLOR_RESET} {detail[:120]}")
+                ACTIVE_LEASES.pop(fn_addr, None)
+
+                # Record failure & check escalation threshold
+                info = FAILURES_BY_ADDR.setdefault(fn_addr, {"count": 0, "errors": [], "last_code": "", "workers": []})
+                info["count"] += 1
+                if detail not in info["errors"]:
+                    info["errors"].append(detail[:250])
+                info["last_code"] = code
+                if worker_id not in info["workers"]:
+                    info["workers"].append(worker_id)
+
+                if info["count"] >= ESCALATION_THRESHOLD and fn_addr not in ESCALATIONS:
+                    ESCALATIONS[fn_addr] = {
+                        "address": fn_addr,
+                        "unit": unit_name,
+                        "size": fn_size,
+                        "failure_count": info["count"],
+                        "recent_errors": info["errors"][-3:],
+                        "last_code": code,
+                        "workers_attempted": info["workers"],
+                        "disassembly": get_function_disassembly(fn_addr, fn_size),
+                        "escalated_at": time.time()
+                    }
+                    save_escalations()
+                    print(f"  {COLOR_YELLOW}[ESCALATED TO SUPERVISOR]{COLOR_RESET} Function {fn_addr} failed {info['count']} times! Flagged for Antigravity review.")
+
                 return self._send_json(200, {"status": "rejected", "match_pct": match_pct, "error": detail})
-        else:
-            self._send_json(404, {"error": "Not found"})
+
+        elif self.path == "/resolve_escalation":
+            length = int(self.headers.get("Content-Length", 0))
+            body = self.rfile.read(length)
+            try:
+                data = json.loads(body.decode("utf-8"))
+            except Exception:
+                return self._send_json(400, {"error": "Invalid JSON"})
+
+            fn_addr = data.get("address")
+            action = data.get("action", "reset")
+            hints = data.get("hints", "")
+
+            if action == "set_hint":
+                manifest = load_manifest()
+                for u in manifest.get("units", []):
+                    for fn in u.get("functions", []):
+                        if fn.get("address") == fn_addr:
+                            fn["hints"] = hints
+                save_manifest(manifest)
+                FAILURES_BY_ADDR.pop(fn_addr, None)
+                ESCALATIONS.pop(fn_addr, None)
+                save_escalations()
+                print(f"  {COLOR_GREEN}[SUPERVISOR APPLIED HINT]{COLOR_RESET} {fn_addr}: {hints}")
+                return self._send_json(200, {"status": "resolved", "action": "set_hint", "address": fn_addr})
+            elif action == "reset":
+                FAILURES_BY_ADDR.pop(fn_addr, None)
+                ESCALATIONS.pop(fn_addr, None)
+                save_escalations()
+                return self._send_json(200, {"status": "resolved", "action": "reset", "address": fn_addr})
+            else:
+                return self._send_json(400, {"error": f"Unknown action: {action}"})
 
 
 def main():

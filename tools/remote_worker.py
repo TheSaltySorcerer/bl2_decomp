@@ -109,12 +109,15 @@ def run_worker():
         print(f"\n{COLOR_BOLD}[Task Received]{COLOR_RESET} {addr} ({fn_name}) | {size} bytes | Unit: {unit}")
 
         disasm_text = "\n".join([f"  {i['address']}:  {i['bytes']:12s}  {i['mnemonic']:8s} {i['op_str']}" for i in disasm_list])
+        hints = task.get("hints")
+        hint_text = f"\n[SUPERVISOR ARCHITECTURAL GUIDELINE]:\n{hints}\n" if hints else ""
 
         prompt = (
             f"Target Function: {fn_name}\n"
             f"Virtual Address: {addr}\n"
             f"Size: {size} bytes\n"
-            f"Signature: {sig}\n\n"
+            f"Signature: {sig}\n"
+            f"{hint_text}\n"
             f"x86 Disassembly from Borderlands2.exe:\n"
             f"{disasm_text}\n\n"
             f"Please generate the C++ function implementation matching this assembly."
