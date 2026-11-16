@@ -75,18 +75,26 @@ def run_worker():
     args = parser.parse_args()
 
     tier = args.tier
+    model_lower = args.model.lower()
+    if "1.5b" in model_lower:
+        num_tier = 1
+    elif any(k in model_lower for k in ["7b", "8b"]):
+        num_tier = 2
+    else:
+        num_tier = 3
+
     if not tier:
-        tier = "large" if any(k in args.model.lower() for k in ["14b", "32b", "70b"]) else "small"
+        tier = str(num_tier)
 
     print(f"\n{COLOR_BOLD}=== bl2_decomp Remote Worker Node ({args.worker_id}) ==={COLOR_RESET}")
     print(f"Master Server: {args.server}")
     print(f"Local LLM:     {args.llm} ({args.model})")
-    print(f"Routing Tier:  {tier.upper()} (small: <=48B leaves/thunks, large: complex logic)")
+    print(f"Routing Tier:  Tier {num_tier} (1=1.5B scout, 2=7B mid, 3=14B/32B heavy)")
     print("=" * 66)
 
     while True:
         try:
-            req = request.Request(f"{args.server}/task?worker_id={args.worker_id}&tier={tier}")
+            req = request.Request(f"{args.server}/task?worker_id={args.worker_id}&tier={num_tier}")
             with request.urlopen(req, timeout=10) as resp:
                 task = json.loads(resp.read().decode("utf-8"))
         except Exception as e:
@@ -95,7 +103,7 @@ def run_worker():
             continue
 
         if task.get("status") != "assigned":
-            print(f"{COLOR_CYAN}[Idle] No tasks available for tier '{tier}'. Sleeping 10s...{COLOR_RESET}")
+            print(f"{COLOR_CYAN}[Idle] No tasks available for tier '{num_tier}'. Sleeping 10s...{COLOR_RESET}")
             time.sleep(10)
             continue
 
@@ -104,20 +112,24 @@ def run_worker():
         size = task.get("size")
         sig = task.get("signature")
         unit = task.get("unit")
+        fn_tier = task.get("tier", num_tier)
         disasm_list = task.get("disassembly", [])
 
-        print(f"\n{COLOR_BOLD}[Task Received]{COLOR_RESET} {addr} ({fn_name}) | {size} bytes | Unit: {unit}")
+        print(f"\n{COLOR_BOLD}[Task Received]{COLOR_RESET} {addr} ({fn_name}) | {size} bytes | Tier: {fn_tier} | Unit: {unit}")
 
         disasm_text = "\n".join([f"  {i['address']}:  {i['bytes']:12s}  {i['mnemonic']:8s} {i['op_str']}" for i in disasm_list])
         hints = task.get("hints")
         hint_text = f"\n[SUPERVISOR ARCHITECTURAL GUIDELINE]:\n{hints}\n" if hints else ""
+        prior_fb = task.get("prior_feedback")
+        fb_text = f"\n[PRIOR COMPILER / TIER FEEDBACK]:\n{prior_fb}\n" if prior_fb else ""
 
         prompt = (
             f"Target Function: {fn_name}\n"
             f"Virtual Address: {addr}\n"
             f"Size: {size} bytes\n"
             f"Signature: {sig}\n"
-            f"{hint_text}\n"
+            f"{hint_text}"
+            f"{fb_text}\n"
             f"x86 Disassembly from Borderlands2.exe:\n"
             f"{disasm_text}\n\n"
             f"Please generate the C++ function implementation matching this assembly."
@@ -139,7 +151,8 @@ def run_worker():
                 "address": addr,
                 "size": size,
                 "code": candidate_code,
-                "worker_id": args.worker_id
+                "worker_id": args.worker_id,
+                "worker_tier": num_tier
             }
 
             sub_data = json.dumps(submit_payload).encode("utf-8")

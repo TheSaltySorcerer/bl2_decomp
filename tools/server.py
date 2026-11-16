@@ -42,9 +42,19 @@ VCVARS_BAT = Path(r"C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildToo
 # Global state
 ACTIVE_LEASES = {}  # address -> (worker_id, timestamp)
 LEASE_TIMEOUT_SECONDS = 60
-FAILURES_BY_ADDR = {}  # address -> {"count": int, "errors": list, "last_code": str, "workers": list}
+FAILURES_BY_ADDR = {}  # address -> {"count": int, "errors": list, "last_code": str, "workers": list, "tier_fails": dict}
+FUNCTION_TIERS = {}  # address -> int (1=1.5B, 2=7B, 3=14B, 4=Antigravity)
 ESCALATIONS = {}  # address -> dict
-ESCALATION_THRESHOLD = 5
+MAX_TIER_FAILURES = 3  # 3 failures per tier before automatic step-up promotion
+
+
+def get_function_tier(addr: str, size: int) -> int:
+    if addr in FUNCTION_TIERS:
+        return FUNCTION_TIERS[addr]
+    # Default initial tier assignment based on size
+    tier = 1 if size <= 48 else 3
+    FUNCTION_TIERS[addr] = tier
+    return tier
 
 
 def save_escalations():
@@ -175,7 +185,15 @@ class ClusterRequestHandler(BaseHTTPRequestHandler):
             from urllib.parse import urlparse, parse_qs
             parsed = urlparse(self.path)
             params = parse_qs(parsed.query)
-            worker_tier = params.get("tier", ["all"])[0]
+            tier_str = params.get("tier", ["1"])[0].lower()
+            if tier_str in ("1", "small", "1.5b"):
+                w_tier = 1
+            elif tier_str in ("2", "mid", "7b", "8b"):
+                w_tier = 2
+            elif tier_str in ("3", "large", "14b", "32b"):
+                w_tier = 3
+            else:
+                w_tier = 2
             worker_id = params.get("worker_id", ["unknown"])[0]
 
             manifest = load_manifest()
@@ -186,21 +204,26 @@ class ClusterRequestHandler(BaseHTTPRequestHandler):
                     addr = fn.get("address")
                     size = fn.get("size", 32)
                     if not fn.get("matched", False):
-                        # Skip escalated functions for standard workers
-                        if addr in ESCALATIONS and worker_id != "antigravity":
+                        fn_tier = get_function_tier(addr, size)
+
+                        # Level 4 is reserved for Antigravity supervisor
+                        if fn_tier == 4 and worker_id != "antigravity":
                             continue
 
-                        # Task routing funnel: small workers only get small functions (<= 64 bytes)
-                        if worker_tier == "small" and size > 64:
+                        # Routing checks based on worker tier capability
+                        if w_tier == 1 and fn_tier != 1:
                             continue
-                        if worker_tier == "large" and size <= 48:
-                            # Large workers prioritize complex functions (> 48 bytes)
+                        if w_tier == 2 and fn_tier > 2:
+                            continue
+                        if w_tier == 3 and fn_tier > 3:
                             continue
 
                         lease = ACTIVE_LEASES.get(addr)
                         if not lease or (now - lease[1] > LEASE_TIMEOUT_SECONDS):
                             ACTIVE_LEASES[addr] = (worker_id, now)
                             disasm = get_function_disassembly(addr, size)
+                            prior_errors = FAILURES_BY_ADDR.get(addr, {}).get("errors", [])
+                            feedback = "\n".join(prior_errors[-2:]) if prior_errors else ""
                             resp = {
                                 "status": "assigned",
                                 "unit": unit_name,
@@ -208,8 +231,10 @@ class ClusterRequestHandler(BaseHTTPRequestHandler):
                                 "address": addr,
                                 "name": fn.get("name"),
                                 "size": size,
+                                "tier": fn_tier,
                                 "signature": fn.get("signature"),
                                 "hints": fn.get("hints", ""),
+                                "prior_feedback": feedback,
                                 "disassembly": disasm
                             }
                             return self._send_json(200, resp)
@@ -297,29 +322,43 @@ class ClusterRequestHandler(BaseHTTPRequestHandler):
                 print(f"  {COLOR_RED}[REJECTED]{COLOR_RESET} {detail[:120]}")
                 ACTIVE_LEASES.pop(fn_addr, None)
 
-                # Record failure & check escalation threshold
-                info = FAILURES_BY_ADDR.setdefault(fn_addr, {"count": 0, "errors": [], "last_code": "", "workers": []})
+                # Record failure & check step-up promotion
+                w_tier = int(data.get("worker_tier", 1))
+                info = FAILURES_BY_ADDR.setdefault(fn_addr, {"count": 0, "errors": [], "last_code": "", "workers": [], "tier_fails": {1: 0, 2: 0, 3: 0}})
                 info["count"] += 1
                 if detail not in info["errors"]:
                     info["errors"].append(detail[:250])
                 info["last_code"] = code
                 if worker_id not in info["workers"]:
                     info["workers"].append(worker_id)
+                tier_fails = info.setdefault("tier_fails", {1: 0, 2: 0, 3: 0})
+                tier_fails[w_tier] = tier_fails.get(w_tier, 0) + 1
 
-                if info["count"] >= ESCALATION_THRESHOLD and fn_addr not in ESCALATIONS:
-                    ESCALATIONS[fn_addr] = {
-                        "address": fn_addr,
-                        "unit": unit_name,
-                        "size": fn_size,
-                        "failure_count": info["count"],
-                        "recent_errors": info["errors"][-3:],
-                        "last_code": code,
-                        "workers_attempted": info["workers"],
-                        "disassembly": get_function_disassembly(fn_addr, fn_size),
-                        "escalated_at": time.time()
-                    }
-                    save_escalations()
-                    print(f"  {COLOR_YELLOW}[ESCALATED TO SUPERVISOR]{COLOR_RESET} Function {fn_addr} failed {info['count']} times! Flagged for Antigravity review.")
+                # Step-Up Escalation Ladder
+                cur_tier = get_function_tier(fn_addr, fn_size)
+                if cur_tier == 1 and tier_fails.get(1, 0) >= MAX_TIER_FAILURES:
+                    FUNCTION_TIERS[fn_addr] = 2
+                    print(f"  {COLOR_YELLOW}[STEP-UP ESCALATION]{COLOR_RESET} Function {fn_addr} promoted: Tier 1 (1.5B) -> Tier 2 (7B)")
+                elif cur_tier == 2 and tier_fails.get(2, 0) >= MAX_TIER_FAILURES:
+                    FUNCTION_TIERS[fn_addr] = 3
+                    print(f"  {COLOR_YELLOW}[STEP-UP ESCALATION]{COLOR_RESET} Function {fn_addr} promoted: Tier 2 (7B) -> Tier 3 (14B)")
+                elif cur_tier == 3 and tier_fails.get(3, 0) >= MAX_TIER_FAILURES:
+                    FUNCTION_TIERS[fn_addr] = 4
+                    if fn_addr not in ESCALATIONS:
+                        ESCALATIONS[fn_addr] = {
+                            "address": fn_addr,
+                            "unit": unit_name,
+                            "size": fn_size,
+                            "failure_count": info["count"],
+                            "tier_breakdown": tier_fails,
+                            "recent_errors": info["errors"][-3:],
+                            "last_code": code,
+                            "workers_attempted": info["workers"],
+                            "disassembly": get_function_disassembly(fn_addr, fn_size),
+                            "escalated_at": time.time()
+                        }
+                        save_escalations()
+                        print(f"  {COLOR_RED}[LEVEL 4 ESCALATION]{COLOR_RESET} Function {fn_addr} exhausted all local models (Tier 1-3). Flagged for Antigravity review.")
 
                 return self._send_json(200, {"status": "rejected", "match_pct": match_pct, "error": detail})
 
