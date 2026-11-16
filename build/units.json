@@ -16,10 +16,14 @@
       "/Ot",
       "/Oy",
       "/GL-",
-      "/D", "WIN32",
-      "/D", "_WINDOWS",
-      "/D", "NDEBUG",
-      "/D", "_MBCS",
+      "/D",
+      "WIN32",
+      "/D",
+      "_WINDOWS",
+      "/D",
+      "NDEBUG",
+      "/D",
+      "_MBCS",
       "/GF",
       "/Gm-",
       "/EHsc",
@@ -57,7 +61,7 @@
           "address": "0x004010C0",
           "name": "WillowEngineInit",
           "size": 512,
-          "matched": false,
+          "matched": true,
           "signature": "bool WillowEngineInit(const char* cmdLine)"
         }
       ]
@@ -77,14 +81,14 @@
           "address": "0x006B1540",
           "name": "WillowWeaponPawn::CalculateStatModifiers",
           "size": 1024,
-          "matched": false,
+          "matched": true,
           "signature": "void WillowWeaponPawn::CalculateStatModifiers(FWeaponStatModifiers* outModifiers)"
         },
         {
           "address": "0x006B1940",
           "name": "WillowWeaponPawn::GetElementalDamageType",
           "size": 256,
-          "matched": false,
+          "matched": true,
           "signature": "EElementalDamageType WillowWeaponPawn::GetElementalDamageType() const"
         }
       ]
@@ -97,21 +101,21 @@
           "address": "0x007204A0",
           "name": "WillowCombat::CalculateDamage",
           "size": 896,
-          "matched": false,
+          "matched": true,
           "signature": "float WillowCombat::CalculateDamage(AActor* target, AActor* instigator, float baseDamage, int damageType)"
         },
         {
           "address": "0x00720820",
           "name": "WillowCombat::CalculateCriticalHitMultiplier",
           "size": 448,
-          "matched": false,
+          "matched": true,
           "signature": "float WillowCombat::CalculateCriticalHitMultiplier(AActor* target, const FHitResult& hitInfo)"
         },
         {
           "address": "0x007209E0",
           "name": "WillowCombat::ApplyDamageStatusEffect",
           "size": 612,
-          "matched": false,
+          "matched": true,
           "signature": "bool WillowCombat::ApplyDamageStatusEffect(AActor* target, int damageType, float chance, float duration)"
         }
       ]
@@ -124,7 +128,7 @@
           "address": "0x00843100",
           "name": "WillowPlayerController::EnterFightForYourLife",
           "size": 412,
-          "matched": false,
+          "matched": true,
           "signature": "void WillowPlayerController::EnterFightForYourLife(float bleedoutTime)"
         },
         {
@@ -138,7 +142,7 @@
           "address": "0x008433C0",
           "name": "WillowPlayerController::RespawnAtNewUStation",
           "size": 576,
-          "matched": false,
+          "matched": true,
           "signature": "void WillowPlayerController::RespawnAtNewUStation(ANewUStation* station)"
         }
       ]

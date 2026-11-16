@@ -14,6 +14,15 @@ struct FHitResult
     FName   BoneName;
     INT     Item;
     BYTE    PhysMaterial;
+    BOOL    bBlockingHit;
+    BOOL    bStartPenetrating;
+    FLOAT   Distance;
+    FVector ImpactPoint;
+    FVector ImpactNormal;
+    FVector TraceStart;
+    FVector TraceEnd;
+
+    BOOL IsValidBlockingHit() const { return bBlockingHit != 0; }
 };
 
 class AActor : public UObject
