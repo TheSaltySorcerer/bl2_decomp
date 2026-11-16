@@ -161,7 +161,7 @@ def test_compile_match(unit_name: str, fn_addr: str, fn_size: int, candidate_cod
 
     cmd = (
         f'call "{VCVARS_BAT}" x86 >nul 2>&1 && '
-        f'cl.exe /c /O2 /Oi /Ot /Oy /GF /EHsc /MT /fp:fast /wd4996 '
+        f'cl.exe /c /O2 /Oi /Ot /Oy- /GF /EHsc /MT /fp:fast /wd4996 '
         f'/I"{PROJECT_ROOT / "include"}" /I"{PROJECT_ROOT / "include/Core"}" '
         f'/I"{PROJECT_ROOT / "include/Engine"}" /I"{PROJECT_ROOT / "include/WillowGame"}" '
         f'/Fo"{test_obj}" "{test_src}"'

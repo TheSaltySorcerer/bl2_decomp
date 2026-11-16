@@ -73,11 +73,14 @@ namespace WillowCombat
 class WillowCombatLogic
 {
 public:
+    BYTE pad_0x00[0x50];
+    INT Field_0x50;
+
+    void Sub_006097B0(INT val);
     INT Sub_00603B90(void* thisPtr, INT arg1 = 0, INT arg2 = 0);
     INT Sub_00605B70(void* thisPtr, INT arg1 = 0, INT arg2 = 0);
     INT Sub_00607150(void* thisPtr, INT arg1 = 0, INT arg2 = 0);
-    INT Sub_006097B0(void* thisPtr, INT arg1 = 0, INT arg2 = 0);
-    INT Sub_00611610(void* thisPtr, INT arg1 = 0, INT arg2 = 0);
+        INT Sub_00611610(void* thisPtr, INT arg1 = 0, INT arg2 = 0);
     INT Sub_00611630(void* thisPtr, INT arg1 = 0, INT arg2 = 0);
     INT Sub_00611650(void* thisPtr, INT arg1 = 0, INT arg2 = 0);
     INT Sub_00611670(void* thisPtr, INT arg1 = 0, INT arg2 = 0);

@@ -385,9 +385,9 @@
         {
           "address": "0x006097B0",
           "name": "Sub_006097B0",
-          "size": 38,
-          "matched": false,
-          "signature": "INT WillowCombatLogic::Sub_006097B0(void* thisPtr, INT arg1 = 0, INT arg2 = 0)"
+          "size": 13,
+          "matched": true,
+          "signature": "void WillowCombatLogic::Sub_006097B0(INT val)"
         },
         {
           "address": "0x00611610",
