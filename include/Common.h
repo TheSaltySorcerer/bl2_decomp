@@ -7,21 +7,27 @@
 #include <cstddef>
 #include <string>
 
-// Windows types if compiling without windows.h
+#ifdef _WIN32
 #ifndef WIN32_LEAN_AND_MEAN
 #define WIN32_LEAN_AND_MEAN
 #endif
-
+#ifndef NOMINMAX
+#define NOMINMAX
+#endif
+#include <windows.h>
+#else
 typedef int32_t   INT;
 typedef uint32_t  UINT;
-typedef int64_t   INT64;
-typedef uint64_t  UINT64;
-typedef float     FLOAT;
-typedef double    DOUBLE;
 typedef uint8_t   BYTE;
 typedef uint16_t  WORD;
 typedef uint32_t  DWORD;
 typedef int32_t   BOOL;
+#endif
+
+typedef int64_t   INT64;
+typedef uint64_t  UINT64;
+typedef float     FLOAT;
+typedef double    DOUBLE;
 
 #ifndef TRUE
 #define TRUE 1
