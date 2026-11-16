@@ -40,8 +40,12 @@ typedef double    DOUBLE;
 // Unreal Engine 3 alignment and calling convention macros
 #define FORCEINLINE __forceinline
 #define VARARGS     __cdecl
+#ifndef CDECL
 #define CDECL       __cdecl
+#endif
+#ifndef STDCALL
 #define STDCALL     __stdcall
+#endif
 
 // Decompilation annotation macros matching fnv_decomp standards
 #define MATCH_OFFSET(addr)
