@@ -104,7 +104,7 @@ def main():
             return
         esc = data.get("escalations", {})
         print(f"\n=== bl2_decomp Escalation Queue ({len(esc)} flagged functions) ===")
-        print(f"Threshold: >= {data.get('threshold', 5)} worker failures\n")
+        print("Thresholds (5 min/tier): Tier 1 (1.5B): 250 attempts | Tier 2 (7B): 150 attempts | Tier 3 (14B): 8 attempts\n")
         if not esc:
             print("No functions currently escalated. Workers are progressing normally.")
             return

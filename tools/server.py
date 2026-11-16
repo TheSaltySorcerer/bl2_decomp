@@ -45,7 +45,11 @@ LEASE_TIMEOUT_SECONDS = 60
 FAILURES_BY_ADDR = {}  # address -> {"count": int, "errors": list, "last_code": str, "workers": list, "tier_fails": dict}
 FUNCTION_TIERS = {}  # address -> int (1=1.5B, 2=7B, 3=14B, 4=Antigravity)
 ESCALATIONS = {}  # address -> dict
-MAX_TIER_FAILURES = 20  # 20 attempts per tier before step-up promotion
+# 5 minutes of compute per model tier on the high end of complete attempts:
+# Tier 1 (1.5B @ 114 tok/s, ~1.1s/attempt): 250 attempts (~4.6 min)
+# Tier 2 (7B @ 62 tok/s, ~2.0s/attempt): 150 attempts (~5.0 min)
+# Tier 3 (14B CPU @ 3.5 tok/s, ~48s/attempt): 8 attempts (~6.4 min)
+MAX_TIER_FAILURES = {1: 250, 2: 150, 3: 8}
 UNIT_GUIDELINES = {}  # unit_name -> str (pattern guideline applied to all functions in unit)
 
 
@@ -265,7 +269,7 @@ class ClusterRequestHandler(BaseHTTPRequestHandler):
         elif self.path == "/escalations":
             return self._send_json(200, {
                 "count": len(ESCALATIONS),
-                "threshold": ESCALATION_THRESHOLD,
+                "threshold": MAX_TIER_FAILURES,
                 "escalations": ESCALATIONS
             })
         elif self.path.startswith("/release"):
@@ -355,15 +359,19 @@ class ClusterRequestHandler(BaseHTTPRequestHandler):
                 tier_fails = info.setdefault("tier_fails", {1: 0, 2: 0, 3: 0})
                 tier_fails[w_tier] = tier_fails.get(w_tier, 0) + 1
 
-                # Step-Up Escalation Ladder
+                # Step-Up Escalation Ladder (Calibrated to 5 minutes of compute per model)
                 cur_tier = get_function_tier(fn_addr, fn_size)
-                if cur_tier == 1 and tier_fails.get(1, 0) >= MAX_TIER_FAILURES:
+                thresh_1 = MAX_TIER_FAILURES.get(1, 250)
+                thresh_2 = MAX_TIER_FAILURES.get(2, 150)
+                thresh_3 = MAX_TIER_FAILURES.get(3, 8)
+
+                if cur_tier == 1 and tier_fails.get(1, 0) >= thresh_1:
                     FUNCTION_TIERS[fn_addr] = 2
-                    print(f"  {COLOR_YELLOW}[STEP-UP ESCALATION]{COLOR_RESET} Function {fn_addr} promoted: Tier 1 (1.5B) -> Tier 2 (7B)")
-                elif cur_tier == 2 and tier_fails.get(2, 0) >= MAX_TIER_FAILURES:
+                    print(f"  {COLOR_YELLOW}[STEP-UP ESCALATION]{COLOR_RESET} Function {fn_addr} completed 5 mins on Tier 1 ({thresh_1} attempts). Promoted -> Tier 2 (7B)")
+                elif cur_tier == 2 and tier_fails.get(2, 0) >= thresh_2:
                     FUNCTION_TIERS[fn_addr] = 3
-                    print(f"  {COLOR_YELLOW}[STEP-UP ESCALATION]{COLOR_RESET} Function {fn_addr} promoted: Tier 2 (7B) -> Tier 3 (14B)")
-                elif cur_tier == 3 and tier_fails.get(3, 0) >= MAX_TIER_FAILURES:
+                    print(f"  {COLOR_YELLOW}[STEP-UP ESCALATION]{COLOR_RESET} Function {fn_addr} completed 5 mins on Tier 2 ({thresh_2} attempts). Promoted -> Tier 3 (14B)")
+                elif cur_tier == 3 and tier_fails.get(3, 0) >= thresh_3:
                     FUNCTION_TIERS[fn_addr] = 4
                     if fn_addr not in ESCALATIONS:
                         ESCALATIONS[fn_addr] = {
@@ -379,7 +387,7 @@ class ClusterRequestHandler(BaseHTTPRequestHandler):
                             "escalated_at": time.time()
                         }
                         save_escalations()
-                        print(f"  {COLOR_RED}[LEVEL 4 ESCALATION]{COLOR_RESET} Function {fn_addr} exhausted all local models (Tier 1-3). Flagged for Antigravity review.")
+                        print(f"  {COLOR_RED}[LEVEL 4 ESCALATION]{COLOR_RESET} Function {fn_addr} exhausted 5 mins across all local tiers. Flagged for Antigravity review.")
 
                 return self._send_json(200, {"status": "rejected", "match_pct": match_pct, "error": detail})
 
