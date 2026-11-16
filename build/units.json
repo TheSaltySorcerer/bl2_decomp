@@ -1,0 +1,147 @@
+{
+  "target": {
+    "name": "Borderlands2.exe",
+    "version": "1.8.5 (Steam PC)",
+    "architecture": "x86",
+    "base_address": "0x00400000",
+    "compiler": "MSVC 2010 (v100) / Visual Studio 2010 SP1",
+    "sha256": "1231b384aea791bc51286664627d03e27d6a77ffd4ec3bb5001186c136504c17"
+  },
+  "compiler_options": {
+    "cflags": [
+      "/c",
+      "/O2",
+      "/Ob2",
+      "/Oi",
+      "/Ot",
+      "/Oy",
+      "/GL-",
+      "/D", "WIN32",
+      "/D", "_WINDOWS",
+      "/D", "NDEBUG",
+      "/D", "_MBCS",
+      "/GF",
+      "/Gm-",
+      "/EHsc",
+      "/MT",
+      "/GS-",
+      "/Gy",
+      "/fp:fast",
+      "/Zc:wchar_t",
+      "/Zc:forScope",
+      "/GR-",
+      "/Gd",
+      "/wd4996"
+    ],
+    "include_dirs": [
+      "include",
+      "include/Core",
+      "include/Engine",
+      "include/GearboxFramework",
+      "include/WillowGame"
+    ]
+  },
+  "units": [
+    {
+      "name": "BLMain",
+      "source": "src/main.cpp",
+      "functions": [
+        {
+          "address": "0x00401000",
+          "name": "WinMain",
+          "size": 184,
+          "matched": false,
+          "signature": "int __stdcall WinMain(HINSTANCE, HINSTANCE, LPSTR, int)"
+        },
+        {
+          "address": "0x004010C0",
+          "name": "WillowEngineInit",
+          "size": 512,
+          "matched": false,
+          "signature": "bool WillowEngineInit(const char* cmdLine)"
+        }
+      ]
+    },
+    {
+      "name": "BLWeaponGenerator",
+      "source": "src/WillowGame/Weapon/BLWeaponGenerator.cpp",
+      "functions": [
+        {
+          "address": "0x006B1240",
+          "name": "WillowWeaponPawn::GenerateWeaponParts",
+          "size": 768,
+          "matched": false,
+          "signature": "void WillowWeaponPawn::GenerateWeaponParts(int seed, FWeaponDefinition* def)"
+        },
+        {
+          "address": "0x006B1540",
+          "name": "WillowWeaponPawn::CalculateStatModifiers",
+          "size": 1024,
+          "matched": false,
+          "signature": "void WillowWeaponPawn::CalculateStatModifiers(FWeaponStatModifiers* outModifiers)"
+        },
+        {
+          "address": "0x006B1940",
+          "name": "WillowWeaponPawn::GetElementalDamageType",
+          "size": 256,
+          "matched": false,
+          "signature": "EElementalDamageType WillowWeaponPawn::GetElementalDamageType() const"
+        }
+      ]
+    },
+    {
+      "name": "BLDamageCalculation",
+      "source": "src/WillowGame/Combat/BLDamageCalculation.cpp",
+      "functions": [
+        {
+          "address": "0x007204A0",
+          "name": "WillowCombat::CalculateDamage",
+          "size": 896,
+          "matched": false,
+          "signature": "float WillowCombat::CalculateDamage(AActor* target, AActor* instigator, float baseDamage, int damageType)"
+        },
+        {
+          "address": "0x00720820",
+          "name": "WillowCombat::CalculateCriticalHitMultiplier",
+          "size": 448,
+          "matched": false,
+          "signature": "float WillowCombat::CalculateCriticalHitMultiplier(AActor* target, const FHitResult& hitInfo)"
+        },
+        {
+          "address": "0x007209E0",
+          "name": "WillowCombat::ApplyDamageStatusEffect",
+          "size": 612,
+          "matched": false,
+          "signature": "bool WillowCombat::ApplyDamageStatusEffect(AActor* target, int damageType, float chance, float duration)"
+        }
+      ]
+    },
+    {
+      "name": "BLPlayerController",
+      "source": "src/WillowGame/Player/BLPlayerController.cpp",
+      "functions": [
+        {
+          "address": "0x00843100",
+          "name": "WillowPlayerController::EnterFightForYourLife",
+          "size": 412,
+          "matched": false,
+          "signature": "void WillowPlayerController::EnterFightForYourLife(float bleedoutTime)"
+        },
+        {
+          "address": "0x008432A0",
+          "name": "WillowPlayerController::TriggerSecondWind",
+          "size": 288,
+          "matched": false,
+          "signature": "void WillowPlayerController::TriggerSecondWind(AActor* killedEnemy)"
+        },
+        {
+          "address": "0x008433C0",
+          "name": "WillowPlayerController::RespawnAtNewUStation",
+          "size": 576,
+          "matched": false,
+          "signature": "void WillowPlayerController::RespawnAtNewUStation(ANewUStation* station)"
+        }
+      ]
+    }
+  ]
+}

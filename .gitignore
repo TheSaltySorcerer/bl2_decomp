@@ -1,0 +1,34 @@
+# Build Artifacts
+build/out/
+build/obj/
+bin/
+*.exe
+*.dll
+*.lib
+*.obj
+*.pdb
+*.ilk
+*.exp
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+venv/
+.venv/
+
+# IDE & OS
+.vs/
+*.sln.docstates
+.vscode/
+*.suo
+*.user
+*.DS_Store
+Thumbs.db
+
+# Target Game Executable (Strict BYOG - Never commit game binaries)
+*.exe.orig
+Borderlands2.exe
+Borderlands2VR.exe
+target/
+diff/

@@ -1,0 +1,27 @@
+name: CI Match Check
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  match-check:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Validate Manifest & Units Syntax (Dry Run)
+        run: |
+          python tools/build_and_match.py --dry-run
+
+      - name: Check Progress Metrics
+        run: |
+          python tools/check_progress.py
