@@ -360,6 +360,566 @@
           "size": 358,
           "matched": false,
           "signature": "int WillowCombatLogic::Sub_007048E0(void* thisPtr, int arg1, int arg2)"
+        },
+        {
+          "address": "0x00603B90",
+          "name": "Sub_00603B90",
+          "size": 18,
+          "matched": false,
+          "signature": "INT WillowCombatLogic::Sub_00603B90(void* thisPtr, INT arg1 = 0, INT arg2 = 0)"
+        },
+        {
+          "address": "0x00605B70",
+          "name": "Sub_00605B70",
+          "size": 18,
+          "matched": false,
+          "signature": "INT WillowCombatLogic::Sub_00605B70(void* thisPtr, INT arg1 = 0, INT arg2 = 0)"
+        },
+        {
+          "address": "0x00607150",
+          "name": "Sub_00607150",
+          "size": 38,
+          "matched": false,
+          "signature": "INT WillowCombatLogic::Sub_00607150(void* thisPtr, INT arg1 = 0, INT arg2 = 0)"
+        },
+        {
+          "address": "0x006097B0",
+          "name": "Sub_006097B0",
+          "size": 38,
+          "matched": false,
+          "signature": "INT WillowCombatLogic::Sub_006097B0(void* thisPtr, INT arg1 = 0, INT arg2 = 0)"
+        },
+        {
+          "address": "0x00611610",
+          "name": "Sub_00611610",
+          "size": 27,
+          "matched": false,
+          "signature": "INT WillowCombatLogic::Sub_00611610(void* thisPtr, INT arg1 = 0, INT arg2 = 0)"
+        },
+        {
+          "address": "0x00611630",
+          "name": "Sub_00611630",
+          "size": 27,
+          "matched": false,
+          "signature": "INT WillowCombatLogic::Sub_00611630(void* thisPtr, INT arg1 = 0, INT arg2 = 0)"
+        },
+        {
+          "address": "0x00611650",
+          "name": "Sub_00611650",
+          "size": 27,
+          "matched": false,
+          "signature": "INT WillowCombatLogic::Sub_00611650(void* thisPtr, INT arg1 = 0, INT arg2 = 0)"
+        },
+        {
+          "address": "0x00611670",
+          "name": "Sub_00611670",
+          "size": 27,
+          "matched": false,
+          "signature": "INT WillowCombatLogic::Sub_00611670(void* thisPtr, INT arg1 = 0, INT arg2 = 0)"
+        },
+        {
+          "address": "0x00611690",
+          "name": "Sub_00611690",
+          "size": 27,
+          "matched": false,
+          "signature": "INT WillowCombatLogic::Sub_00611690(void* thisPtr, INT arg1 = 0, INT arg2 = 0)"
+        },
+        {
+          "address": "0x006116B0",
+          "name": "Sub_006116B0",
+          "size": 27,
+          "matched": false,
+          "signature": "INT WillowCombatLogic::Sub_006116B0(void* thisPtr, INT arg1 = 0, INT arg2 = 0)"
+        },
+        {
+          "address": "0x006116D0",
+          "name": "Sub_006116D0",
+          "size": 27,
+          "matched": false,
+          "signature": "INT WillowCombatLogic::Sub_006116D0(void* thisPtr, INT arg1 = 0, INT arg2 = 0)"
+        },
+        {
+          "address": "0x006116F0",
+          "name": "Sub_006116F0",
+          "size": 27,
+          "matched": false,
+          "signature": "INT WillowCombatLogic::Sub_006116F0(void* thisPtr, INT arg1 = 0, INT arg2 = 0)"
+        },
+        {
+          "address": "0x00611710",
+          "name": "Sub_00611710",
+          "size": 27,
+          "matched": false,
+          "signature": "INT WillowCombatLogic::Sub_00611710(void* thisPtr, INT arg1 = 0, INT arg2 = 0)"
+        },
+        {
+          "address": "0x00611730",
+          "name": "Sub_00611730",
+          "size": 27,
+          "matched": false,
+          "signature": "INT WillowCombatLogic::Sub_00611730(void* thisPtr, INT arg1 = 0, INT arg2 = 0)"
+        },
+        {
+          "address": "0x00611750",
+          "name": "Sub_00611750",
+          "size": 27,
+          "matched": false,
+          "signature": "INT WillowCombatLogic::Sub_00611750(void* thisPtr, INT arg1 = 0, INT arg2 = 0)"
+        },
+        {
+          "address": "0x00611770",
+          "name": "Sub_00611770",
+          "size": 27,
+          "matched": false,
+          "signature": "INT WillowCombatLogic::Sub_00611770(void* thisPtr, INT arg1 = 0, INT arg2 = 0)"
+        },
+        {
+          "address": "0x00611790",
+          "name": "Sub_00611790",
+          "size": 27,
+          "matched": false,
+          "signature": "INT WillowCombatLogic::Sub_00611790(void* thisPtr, INT arg1 = 0, INT arg2 = 0)"
+        },
+        {
+          "address": "0x006117B0",
+          "name": "Sub_006117B0",
+          "size": 27,
+          "matched": false,
+          "signature": "INT WillowCombatLogic::Sub_006117B0(void* thisPtr, INT arg1 = 0, INT arg2 = 0)"
+        },
+        {
+          "address": "0x006117D0",
+          "name": "Sub_006117D0",
+          "size": 27,
+          "matched": false,
+          "signature": "INT WillowCombatLogic::Sub_006117D0(void* thisPtr, INT arg1 = 0, INT arg2 = 0)"
+        },
+        {
+          "address": "0x006117F0",
+          "name": "Sub_006117F0",
+          "size": 27,
+          "matched": false,
+          "signature": "INT WillowCombatLogic::Sub_006117F0(void* thisPtr, INT arg1 = 0, INT arg2 = 0)"
+        },
+        {
+          "address": "0x00611810",
+          "name": "Sub_00611810",
+          "size": 27,
+          "matched": false,
+          "signature": "INT WillowCombatLogic::Sub_00611810(void* thisPtr, INT arg1 = 0, INT arg2 = 0)"
+        },
+        {
+          "address": "0x00611830",
+          "name": "Sub_00611830",
+          "size": 27,
+          "matched": false,
+          "signature": "INT WillowCombatLogic::Sub_00611830(void* thisPtr, INT arg1 = 0, INT arg2 = 0)"
+        },
+        {
+          "address": "0x00611850",
+          "name": "Sub_00611850",
+          "size": 27,
+          "matched": false,
+          "signature": "INT WillowCombatLogic::Sub_00611850(void* thisPtr, INT arg1 = 0, INT arg2 = 0)"
+        },
+        {
+          "address": "0x00611870",
+          "name": "Sub_00611870",
+          "size": 27,
+          "matched": false,
+          "signature": "INT WillowCombatLogic::Sub_00611870(void* thisPtr, INT arg1 = 0, INT arg2 = 0)"
+        },
+        {
+          "address": "0x00611890",
+          "name": "Sub_00611890",
+          "size": 27,
+          "matched": false,
+          "signature": "INT WillowCombatLogic::Sub_00611890(void* thisPtr, INT arg1 = 0, INT arg2 = 0)"
+        },
+        {
+          "address": "0x006118B0",
+          "name": "Sub_006118B0",
+          "size": 27,
+          "matched": false,
+          "signature": "INT WillowCombatLogic::Sub_006118B0(void* thisPtr, INT arg1 = 0, INT arg2 = 0)"
+        },
+        {
+          "address": "0x006118D0",
+          "name": "Sub_006118D0",
+          "size": 27,
+          "matched": false,
+          "signature": "INT WillowCombatLogic::Sub_006118D0(void* thisPtr, INT arg1 = 0, INT arg2 = 0)"
+        },
+        {
+          "address": "0x006118F0",
+          "name": "Sub_006118F0",
+          "size": 27,
+          "matched": false,
+          "signature": "INT WillowCombatLogic::Sub_006118F0(void* thisPtr, INT arg1 = 0, INT arg2 = 0)"
+        },
+        {
+          "address": "0x00611910",
+          "name": "Sub_00611910",
+          "size": 27,
+          "matched": false,
+          "signature": "INT WillowCombatLogic::Sub_00611910(void* thisPtr, INT arg1 = 0, INT arg2 = 0)"
+        },
+        {
+          "address": "0x00611930",
+          "name": "Sub_00611930",
+          "size": 27,
+          "matched": false,
+          "signature": "INT WillowCombatLogic::Sub_00611930(void* thisPtr, INT arg1 = 0, INT arg2 = 0)"
+        },
+        {
+          "address": "0x00611950",
+          "name": "Sub_00611950",
+          "size": 27,
+          "matched": false,
+          "signature": "INT WillowCombatLogic::Sub_00611950(void* thisPtr, INT arg1 = 0, INT arg2 = 0)"
+        },
+        {
+          "address": "0x00611970",
+          "name": "Sub_00611970",
+          "size": 27,
+          "matched": false,
+          "signature": "INT WillowCombatLogic::Sub_00611970(void* thisPtr, INT arg1 = 0, INT arg2 = 0)"
+        },
+        {
+          "address": "0x00611990",
+          "name": "Sub_00611990",
+          "size": 27,
+          "matched": false,
+          "signature": "INT WillowCombatLogic::Sub_00611990(void* thisPtr, INT arg1 = 0, INT arg2 = 0)"
+        },
+        {
+          "address": "0x006119B0",
+          "name": "Sub_006119B0",
+          "size": 27,
+          "matched": false,
+          "signature": "INT WillowCombatLogic::Sub_006119B0(void* thisPtr, INT arg1 = 0, INT arg2 = 0)"
+        },
+        {
+          "address": "0x006119D0",
+          "name": "Sub_006119D0",
+          "size": 27,
+          "matched": false,
+          "signature": "INT WillowCombatLogic::Sub_006119D0(void* thisPtr, INT arg1 = 0, INT arg2 = 0)"
+        },
+        {
+          "address": "0x006119F0",
+          "name": "Sub_006119F0",
+          "size": 27,
+          "matched": false,
+          "signature": "INT WillowCombatLogic::Sub_006119F0(void* thisPtr, INT arg1 = 0, INT arg2 = 0)"
+        },
+        {
+          "address": "0x00611A10",
+          "name": "Sub_00611A10",
+          "size": 27,
+          "matched": false,
+          "signature": "INT WillowCombatLogic::Sub_00611A10(void* thisPtr, INT arg1 = 0, INT arg2 = 0)"
+        },
+        {
+          "address": "0x00611A30",
+          "name": "Sub_00611A30",
+          "size": 27,
+          "matched": false,
+          "signature": "INT WillowCombatLogic::Sub_00611A30(void* thisPtr, INT arg1 = 0, INT arg2 = 0)"
+        },
+        {
+          "address": "0x00611A50",
+          "name": "Sub_00611A50",
+          "size": 27,
+          "matched": false,
+          "signature": "INT WillowCombatLogic::Sub_00611A50(void* thisPtr, INT arg1 = 0, INT arg2 = 0)"
+        },
+        {
+          "address": "0x00611A70",
+          "name": "Sub_00611A70",
+          "size": 27,
+          "matched": false,
+          "signature": "INT WillowCombatLogic::Sub_00611A70(void* thisPtr, INT arg1 = 0, INT arg2 = 0)"
+        },
+        {
+          "address": "0x00611A90",
+          "name": "Sub_00611A90",
+          "size": 27,
+          "matched": false,
+          "signature": "INT WillowCombatLogic::Sub_00611A90(void* thisPtr, INT arg1 = 0, INT arg2 = 0)"
+        },
+        {
+          "address": "0x00611AB0",
+          "name": "Sub_00611AB0",
+          "size": 27,
+          "matched": false,
+          "signature": "INT WillowCombatLogic::Sub_00611AB0(void* thisPtr, INT arg1 = 0, INT arg2 = 0)"
+        },
+        {
+          "address": "0x00611AD0",
+          "name": "Sub_00611AD0",
+          "size": 27,
+          "matched": false,
+          "signature": "INT WillowCombatLogic::Sub_00611AD0(void* thisPtr, INT arg1 = 0, INT arg2 = 0)"
+        },
+        {
+          "address": "0x00611AF0",
+          "name": "Sub_00611AF0",
+          "size": 27,
+          "matched": false,
+          "signature": "INT WillowCombatLogic::Sub_00611AF0(void* thisPtr, INT arg1 = 0, INT arg2 = 0)"
+        },
+        {
+          "address": "0x00611B10",
+          "name": "Sub_00611B10",
+          "size": 27,
+          "matched": false,
+          "signature": "INT WillowCombatLogic::Sub_00611B10(void* thisPtr, INT arg1 = 0, INT arg2 = 0)"
+        },
+        {
+          "address": "0x00611B30",
+          "name": "Sub_00611B30",
+          "size": 27,
+          "matched": false,
+          "signature": "INT WillowCombatLogic::Sub_00611B30(void* thisPtr, INT arg1 = 0, INT arg2 = 0)"
+        },
+        {
+          "address": "0x00611B50",
+          "name": "Sub_00611B50",
+          "size": 27,
+          "matched": false,
+          "signature": "INT WillowCombatLogic::Sub_00611B50(void* thisPtr, INT arg1 = 0, INT arg2 = 0)"
+        },
+        {
+          "address": "0x00611B70",
+          "name": "Sub_00611B70",
+          "size": 27,
+          "matched": false,
+          "signature": "INT WillowCombatLogic::Sub_00611B70(void* thisPtr, INT arg1 = 0, INT arg2 = 0)"
+        },
+        {
+          "address": "0x00611B90",
+          "name": "Sub_00611B90",
+          "size": 27,
+          "matched": false,
+          "signature": "INT WillowCombatLogic::Sub_00611B90(void* thisPtr, INT arg1 = 0, INT arg2 = 0)"
+        },
+        {
+          "address": "0x00611BB0",
+          "name": "Sub_00611BB0",
+          "size": 27,
+          "matched": false,
+          "signature": "INT WillowCombatLogic::Sub_00611BB0(void* thisPtr, INT arg1 = 0, INT arg2 = 0)"
+        },
+        {
+          "address": "0x00611BD0",
+          "name": "Sub_00611BD0",
+          "size": 27,
+          "matched": false,
+          "signature": "INT WillowCombatLogic::Sub_00611BD0(void* thisPtr, INT arg1 = 0, INT arg2 = 0)"
+        },
+        {
+          "address": "0x00611BF0",
+          "name": "Sub_00611BF0",
+          "size": 27,
+          "matched": false,
+          "signature": "INT WillowCombatLogic::Sub_00611BF0(void* thisPtr, INT arg1 = 0, INT arg2 = 0)"
+        },
+        {
+          "address": "0x00611C10",
+          "name": "Sub_00611C10",
+          "size": 27,
+          "matched": false,
+          "signature": "INT WillowCombatLogic::Sub_00611C10(void* thisPtr, INT arg1 = 0, INT arg2 = 0)"
+        },
+        {
+          "address": "0x00611C30",
+          "name": "Sub_00611C30",
+          "size": 27,
+          "matched": false,
+          "signature": "INT WillowCombatLogic::Sub_00611C30(void* thisPtr, INT arg1 = 0, INT arg2 = 0)"
+        },
+        {
+          "address": "0x00611C50",
+          "name": "Sub_00611C50",
+          "size": 27,
+          "matched": false,
+          "signature": "INT WillowCombatLogic::Sub_00611C50(void* thisPtr, INT arg1 = 0, INT arg2 = 0)"
+        },
+        {
+          "address": "0x00611C70",
+          "name": "Sub_00611C70",
+          "size": 27,
+          "matched": false,
+          "signature": "INT WillowCombatLogic::Sub_00611C70(void* thisPtr, INT arg1 = 0, INT arg2 = 0)"
+        },
+        {
+          "address": "0x00611C90",
+          "name": "Sub_00611C90",
+          "size": 27,
+          "matched": false,
+          "signature": "INT WillowCombatLogic::Sub_00611C90(void* thisPtr, INT arg1 = 0, INT arg2 = 0)"
+        },
+        {
+          "address": "0x00611CB0",
+          "name": "Sub_00611CB0",
+          "size": 27,
+          "matched": false,
+          "signature": "INT WillowCombatLogic::Sub_00611CB0(void* thisPtr, INT arg1 = 0, INT arg2 = 0)"
+        },
+        {
+          "address": "0x00611CD0",
+          "name": "Sub_00611CD0",
+          "size": 27,
+          "matched": false,
+          "signature": "INT WillowCombatLogic::Sub_00611CD0(void* thisPtr, INT arg1 = 0, INT arg2 = 0)"
+        },
+        {
+          "address": "0x00611CF0",
+          "name": "Sub_00611CF0",
+          "size": 27,
+          "matched": false,
+          "signature": "INT WillowCombatLogic::Sub_00611CF0(void* thisPtr, INT arg1 = 0, INT arg2 = 0)"
+        },
+        {
+          "address": "0x00611D10",
+          "name": "Sub_00611D10",
+          "size": 27,
+          "matched": false,
+          "signature": "INT WillowCombatLogic::Sub_00611D10(void* thisPtr, INT arg1 = 0, INT arg2 = 0)"
+        },
+        {
+          "address": "0x00611D30",
+          "name": "Sub_00611D30",
+          "size": 27,
+          "matched": false,
+          "signature": "INT WillowCombatLogic::Sub_00611D30(void* thisPtr, INT arg1 = 0, INT arg2 = 0)"
+        },
+        {
+          "address": "0x00611D50",
+          "name": "Sub_00611D50",
+          "size": 27,
+          "matched": false,
+          "signature": "INT WillowCombatLogic::Sub_00611D50(void* thisPtr, INT arg1 = 0, INT arg2 = 0)"
+        },
+        {
+          "address": "0x00611D70",
+          "name": "Sub_00611D70",
+          "size": 27,
+          "matched": false,
+          "signature": "INT WillowCombatLogic::Sub_00611D70(void* thisPtr, INT arg1 = 0, INT arg2 = 0)"
+        },
+        {
+          "address": "0x00611D90",
+          "name": "Sub_00611D90",
+          "size": 27,
+          "matched": false,
+          "signature": "INT WillowCombatLogic::Sub_00611D90(void* thisPtr, INT arg1 = 0, INT arg2 = 0)"
+        },
+        {
+          "address": "0x00611DB0",
+          "name": "Sub_00611DB0",
+          "size": 27,
+          "matched": false,
+          "signature": "INT WillowCombatLogic::Sub_00611DB0(void* thisPtr, INT arg1 = 0, INT arg2 = 0)"
+        },
+        {
+          "address": "0x00611DD0",
+          "name": "Sub_00611DD0",
+          "size": 27,
+          "matched": false,
+          "signature": "INT WillowCombatLogic::Sub_00611DD0(void* thisPtr, INT arg1 = 0, INT arg2 = 0)"
+        },
+        {
+          "address": "0x00611DF0",
+          "name": "Sub_00611DF0",
+          "size": 27,
+          "matched": false,
+          "signature": "INT WillowCombatLogic::Sub_00611DF0(void* thisPtr, INT arg1 = 0, INT arg2 = 0)"
+        },
+        {
+          "address": "0x00611E10",
+          "name": "Sub_00611E10",
+          "size": 27,
+          "matched": false,
+          "signature": "INT WillowCombatLogic::Sub_00611E10(void* thisPtr, INT arg1 = 0, INT arg2 = 0)"
+        },
+        {
+          "address": "0x00611E30",
+          "name": "Sub_00611E30",
+          "size": 27,
+          "matched": false,
+          "signature": "INT WillowCombatLogic::Sub_00611E30(void* thisPtr, INT arg1 = 0, INT arg2 = 0)"
+        },
+        {
+          "address": "0x00611E50",
+          "name": "Sub_00611E50",
+          "size": 27,
+          "matched": false,
+          "signature": "INT WillowCombatLogic::Sub_00611E50(void* thisPtr, INT arg1 = 0, INT arg2 = 0)"
+        },
+        {
+          "address": "0x00611E70",
+          "name": "Sub_00611E70",
+          "size": 27,
+          "matched": false,
+          "signature": "INT WillowCombatLogic::Sub_00611E70(void* thisPtr, INT arg1 = 0, INT arg2 = 0)"
+        },
+        {
+          "address": "0x00611E90",
+          "name": "Sub_00611E90",
+          "size": 27,
+          "matched": false,
+          "signature": "INT WillowCombatLogic::Sub_00611E90(void* thisPtr, INT arg1 = 0, INT arg2 = 0)"
+        },
+        {
+          "address": "0x00611EB0",
+          "name": "Sub_00611EB0",
+          "size": 27,
+          "matched": false,
+          "signature": "INT WillowCombatLogic::Sub_00611EB0(void* thisPtr, INT arg1 = 0, INT arg2 = 0)"
+        },
+        {
+          "address": "0x00611ED0",
+          "name": "Sub_00611ED0",
+          "size": 27,
+          "matched": false,
+          "signature": "INT WillowCombatLogic::Sub_00611ED0(void* thisPtr, INT arg1 = 0, INT arg2 = 0)"
+        },
+        {
+          "address": "0x00611EF0",
+          "name": "Sub_00611EF0",
+          "size": 27,
+          "matched": false,
+          "signature": "INT WillowCombatLogic::Sub_00611EF0(void* thisPtr, INT arg1 = 0, INT arg2 = 0)"
+        },
+        {
+          "address": "0x00611F10",
+          "name": "Sub_00611F10",
+          "size": 27,
+          "matched": false,
+          "signature": "INT WillowCombatLogic::Sub_00611F10(void* thisPtr, INT arg1 = 0, INT arg2 = 0)"
+        },
+        {
+          "address": "0x00611F30",
+          "name": "Sub_00611F30",
+          "size": 27,
+          "matched": false,
+          "signature": "INT WillowCombatLogic::Sub_00611F30(void* thisPtr, INT arg1 = 0, INT arg2 = 0)"
+        },
+        {
+          "address": "0x00611F50",
+          "name": "Sub_00611F50",
+          "size": 27,
+          "matched": false,
+          "signature": "INT WillowCombatLogic::Sub_00611F50(void* thisPtr, INT arg1 = 0, INT arg2 = 0)"
+        },
+        {
+          "address": "0x00611F70",
+          "name": "Sub_00611F70",
+          "size": 27,
+          "matched": false,
+          "signature": "INT WillowCombatLogic::Sub_00611F70(void* thisPtr, INT arg1 = 0, INT arg2 = 0)"
         }
       ]
     }
