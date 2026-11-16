@@ -70,8 +70,9 @@ namespace WillowCombat
     BOOL  ApplyDamageStatusEffect(AActor* target, INT damageType, FLOAT chance, FLOAT duration);
 }
 
-namespace WillowCombatLogic
+class WillowCombatLogic
 {
+public:
     INT Sub_00603B90(void* thisPtr, INT arg1 = 0, INT arg2 = 0);
     INT Sub_00605B70(void* thisPtr, INT arg1 = 0, INT arg2 = 0);
     INT Sub_00607150(void* thisPtr, INT arg1 = 0, INT arg2 = 0);
@@ -182,6 +183,6 @@ namespace WillowCombatLogic
     INT Sub_00704690(void* thisPtr, INT arg1 = 0, INT arg2 = 0);
     INT Sub_00704730(void* thisPtr, INT arg1 = 0, INT arg2 = 0);
     INT Sub_007048E0(void* thisPtr, INT arg1 = 0, INT arg2 = 0);
-}
+};
 
 #endif // BL2_DECOMP_WILLOWGAME_H
