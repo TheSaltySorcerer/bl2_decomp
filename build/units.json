@@ -146,6 +146,222 @@
           "signature": "void WillowPlayerController::RespawnAtNewUStation(ANewUStation* station)"
         }
       ]
+    },
+    {
+      "name": "WillowEngineCombatLogic",
+      "source": "src/WillowGame/Combat/WillowCombatLogic.cpp",
+      "functions": [
+        {
+          "address": "0x00701300",
+          "name": "WillowCombatLogic::Sub_00701300",
+          "size": 266,
+          "matched": false,
+          "signature": "int WillowCombatLogic::Sub_00701300(void* thisPtr, int arg1, int arg2)"
+        },
+        {
+          "address": "0x00701AF0",
+          "name": "WillowCombatLogic::Sub_00701AF0",
+          "size": 134,
+          "matched": false,
+          "signature": "int WillowCombatLogic::Sub_00701AF0(void* thisPtr, int arg1, int arg2)"
+        },
+        {
+          "address": "0x00701BB0",
+          "name": "WillowCombatLogic::Sub_00701BB0",
+          "size": 314,
+          "matched": false,
+          "signature": "int WillowCombatLogic::Sub_00701BB0(void* thisPtr, int arg1, int arg2)"
+        },
+        {
+          "address": "0x00702030",
+          "name": "WillowCombatLogic::Sub_00702030",
+          "size": 36,
+          "matched": false,
+          "signature": "int WillowCombatLogic::Sub_00702030(void* thisPtr, int arg1, int arg2)"
+        },
+        {
+          "address": "0x007024C0",
+          "name": "WillowCombatLogic::Sub_007024C0",
+          "size": 138,
+          "matched": false,
+          "signature": "int WillowCombatLogic::Sub_007024C0(void* thisPtr, int arg1, int arg2)"
+        },
+        {
+          "address": "0x00702550",
+          "name": "WillowCombatLogic::Sub_00702550",
+          "size": 184,
+          "matched": false,
+          "signature": "int WillowCombatLogic::Sub_00702550(void* thisPtr, int arg1, int arg2)"
+        },
+        {
+          "address": "0x00702610",
+          "name": "WillowCombatLogic::Sub_00702610",
+          "size": 150,
+          "matched": false,
+          "signature": "int WillowCombatLogic::Sub_00702610(void* thisPtr, int arg1, int arg2)"
+        },
+        {
+          "address": "0x007026B0",
+          "name": "WillowCombatLogic::Sub_007026B0",
+          "size": 292,
+          "matched": false,
+          "signature": "int WillowCombatLogic::Sub_007026B0(void* thisPtr, int arg1, int arg2)"
+        },
+        {
+          "address": "0x007027E0",
+          "name": "WillowCombatLogic::Sub_007027E0",
+          "size": 366,
+          "matched": false,
+          "signature": "int WillowCombatLogic::Sub_007027E0(void* thisPtr, int arg1, int arg2)"
+        },
+        {
+          "address": "0x00702C70",
+          "name": "WillowCombatLogic::Sub_00702C70",
+          "size": 428,
+          "matched": false,
+          "signature": "int WillowCombatLogic::Sub_00702C70(void* thisPtr, int arg1, int arg2)"
+        },
+        {
+          "address": "0x00702E20",
+          "name": "WillowCombatLogic::Sub_00702E20",
+          "size": 269,
+          "matched": false,
+          "signature": "int WillowCombatLogic::Sub_00702E20(void* thisPtr, int arg1, int arg2)"
+        },
+        {
+          "address": "0x00702F30",
+          "name": "WillowCombatLogic::Sub_00702F30",
+          "size": 131,
+          "matched": false,
+          "signature": "int WillowCombatLogic::Sub_00702F30(void* thisPtr, int arg1, int arg2)"
+        },
+        {
+          "address": "0x00702FC0",
+          "name": "WillowCombatLogic::Sub_00702FC0",
+          "size": 185,
+          "matched": false,
+          "signature": "int WillowCombatLogic::Sub_00702FC0(void* thisPtr, int arg1, int arg2)"
+        },
+        {
+          "address": "0x00703080",
+          "name": "WillowCombatLogic::Sub_00703080",
+          "size": 191,
+          "matched": false,
+          "signature": "int WillowCombatLogic::Sub_00703080(void* thisPtr, int arg1, int arg2)"
+        },
+        {
+          "address": "0x00703140",
+          "name": "WillowCombatLogic::Sub_00703140",
+          "size": 158,
+          "matched": false,
+          "signature": "int WillowCombatLogic::Sub_00703140(void* thisPtr, int arg1, int arg2)"
+        },
+        {
+          "address": "0x007031E0",
+          "name": "WillowCombatLogic::Sub_007031E0",
+          "size": 226,
+          "matched": false,
+          "signature": "int WillowCombatLogic::Sub_007031E0(void* thisPtr, int arg1, int arg2)"
+        },
+        {
+          "address": "0x00703890",
+          "name": "WillowCombatLogic::Sub_00703890",
+          "size": 216,
+          "matched": false,
+          "signature": "int WillowCombatLogic::Sub_00703890(void* thisPtr, int arg1, int arg2)"
+        },
+        {
+          "address": "0x00703970",
+          "name": "WillowCombatLogic::Sub_00703970",
+          "size": 138,
+          "matched": false,
+          "signature": "int WillowCombatLogic::Sub_00703970(void* thisPtr, int arg1, int arg2)"
+        },
+        {
+          "address": "0x00703A00",
+          "name": "WillowCombatLogic::Sub_00703A00",
+          "size": 268,
+          "matched": false,
+          "signature": "int WillowCombatLogic::Sub_00703A00(void* thisPtr, int arg1, int arg2)"
+        },
+        {
+          "address": "0x00703B10",
+          "name": "WillowCombatLogic::Sub_00703B10",
+          "size": 317,
+          "matched": false,
+          "signature": "int WillowCombatLogic::Sub_00703B10(void* thisPtr, int arg1, int arg2)"
+        },
+        {
+          "address": "0x00703C50",
+          "name": "WillowCombatLogic::Sub_00703C50",
+          "size": 124,
+          "matched": false,
+          "signature": "int WillowCombatLogic::Sub_00703C50(void* thisPtr, int arg1, int arg2)"
+        },
+        {
+          "address": "0x00703CD0",
+          "name": "WillowCombatLogic::Sub_00703CD0",
+          "size": 311,
+          "matched": false,
+          "signature": "int WillowCombatLogic::Sub_00703CD0(void* thisPtr, int arg1, int arg2)"
+        },
+        {
+          "address": "0x00704300",
+          "name": "WillowCombatLogic::Sub_00704300",
+          "size": 242,
+          "matched": false,
+          "signature": "int WillowCombatLogic::Sub_00704300(void* thisPtr, int arg1, int arg2)"
+        },
+        {
+          "address": "0x00704470",
+          "name": "WillowCombatLogic::Sub_00704470",
+          "size": 24,
+          "matched": false,
+          "signature": "int WillowCombatLogic::Sub_00704470(void* thisPtr, int arg1, int arg2)"
+        },
+        {
+          "address": "0x00704490",
+          "name": "WillowCombatLogic::Sub_00704490",
+          "size": 24,
+          "matched": false,
+          "signature": "int WillowCombatLogic::Sub_00704490(void* thisPtr, int arg1, int arg2)"
+        },
+        {
+          "address": "0x007044B0",
+          "name": "WillowCombatLogic::Sub_007044B0",
+          "size": 138,
+          "matched": false,
+          "signature": "int WillowCombatLogic::Sub_007044B0(void* thisPtr, int arg1, int arg2)"
+        },
+        {
+          "address": "0x00704540",
+          "name": "WillowCombatLogic::Sub_00704540",
+          "size": 266,
+          "matched": false,
+          "signature": "int WillowCombatLogic::Sub_00704540(void* thisPtr, int arg1, int arg2)"
+        },
+        {
+          "address": "0x00704690",
+          "name": "WillowCombatLogic::Sub_00704690",
+          "size": 153,
+          "matched": false,
+          "signature": "int WillowCombatLogic::Sub_00704690(void* thisPtr, int arg1, int arg2)"
+        },
+        {
+          "address": "0x00704730",
+          "name": "WillowCombatLogic::Sub_00704730",
+          "size": 149,
+          "matched": false,
+          "signature": "int WillowCombatLogic::Sub_00704730(void* thisPtr, int arg1, int arg2)"
+        },
+        {
+          "address": "0x007048E0",
+          "name": "WillowCombatLogic::Sub_007048E0",
+          "size": 358,
+          "matched": false,
+          "signature": "int WillowCombatLogic::Sub_007048E0(void* thisPtr, int arg1, int arg2)"
+        }
+      ]
     }
   ]
 }
