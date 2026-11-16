@@ -52,10 +52,11 @@
       "functions": [
         {
           "address": "0x00401000",
-          "name": "WinMain",
-          "size": 184,
+          "name": "Sub_00401000",
+          "size": 41,
           "matched": false,
-          "signature": "int __stdcall WinMain(HINSTANCE, HINSTANCE, LPSTR, int)"
+          "signature": "int Sub_00401000(int arg1, int arg2)",
+          "hints": "Size is 41 bytes ending at ret. Calls vtbl[1](arg1, arg2) on global object 0x19f29a4 with lazy Init_004050f0()."
         },
         {
           "address": "0x004010C0",
