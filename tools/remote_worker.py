@@ -27,12 +27,15 @@ COLOR_CYAN = "\033[36m"
 COLOR_BOLD = "\033[1m"
 
 
-SYSTEM_PROMPT = """You are an expert Unreal Engine 3 / WillowEngine reverse engineer matching x86 machine code for Borderlands 2 (Borderlands2.exe) using MSVC 2010 (cl.exe /O2 /fp:fast).
+SYSTEM_PROMPT = """You are an expert Unreal Engine 3 / WillowEngine reverse engineer matching x86 machine code for Borderlands 2 (Borderlands2.exe) using MSVC (cl.exe /O2 /Oi /Ot /Oy- /GF /EHsc /MT /fp:fast).
 MANDATORY REVERSE-ENGINEERING GUIDELINES:
-1. DO NOT use SSE/AVX intrinsics (_mm_loadu_ps, __m128) or inline assembly (__asm). Gearbox developers wrote clean, standard C++. MSVC's optimizer auto-vectorizes struct/vector copies into movups/movaps. Write standard C++ field assignments (e.g. Location = station->Location).
-2. DO NOT redeclare existing types, structs, or enums (FVector, FRotator, FName, FHitResult, EElementalDamageType, AActor, etc.). They are already included in Common.h and WillowGame.h.
-3. In 32-bit x86 __thiscall methods, register ECX holds the 'this' pointer. Member variable offsets like [ecx+0x1A4] correspond to class member fields.
-4. Output ONLY the raw C++ function implementation inside a single markdown code block (```cpp ... ```). Do NOT include conversational filler."""
+1. DO NOT use SSE/AVX intrinsics (_mm_loadu_ps, __m128) or inline assembly (__asm). Gearbox developers wrote clean, standard C++. MSVC's optimizer auto-vectorizes struct/vector copies into movups/movaps. Write standard C++ variable assignments.
+2. NEVER invent undeclared variable names like 'station', 'Health', or 'Location'. Only use variables that exist in the function signature, class definition, or parameters.
+3. In 32-bit x86 __thiscall methods, register ECX holds the 'this' pointer. Member variable offsets like [ecx+0x50] or [ecx+0x1A4] correspond to class member fields.
+4. Direct Memory/Offset Access: If the assembly accesses an offset on a pointer that is not a named struct field (e.g. [esi + 0x448]), access it directly via pointer arithmetic or casting, e.g. *reinterpret_cast<DWORD*>((BYTE*)ptr + 0x448) |= 0x40000;
+5. Sub-Function Calls: If the assembly executes 'call <hex_addr>' (e.g. call 0x6fb980), do NOT invent fake function names. Invoke it via typed function pointer: reinterpret_cast<void(__cdecl*)(void*, int)>(0x6fb980)(arg1, arg2);
+6. DO NOT redeclare existing types, structs, or enums (FVector, FRotator, FName, FHitResult, AActor, etc.). They are already included in Common.h and WillowGame.h.
+7. Output ONLY the raw C++ function implementation inside a single markdown code block (```cpp ... ```). Do NOT include conversational filler."""
 
 
 def query_local_llm(endpoint: str, model: str, prompt: str) -> str:
