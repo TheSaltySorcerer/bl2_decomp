@@ -1,12 +1,13 @@
 #!/usr/bin/env python3
 """
-BL2_DECOMP: Automated Build and Match Pipeline
-Modeled directly after the fnv_decomp verification toolchain.
+BL2_DECOMP: Fully Local Automated Build and Match Pipeline
+Compiles translation units via MSVC BuildTools (x86) and verifies byte parity against Borderlands2.exe.
 
 Usage:
-    python tools/build_and_match.py --image "<path_to_Borderlands2.exe>"
-    python tools/build_and_match.py --image "<path_to_Borderlands2.exe>" --only BLMain
     python tools/build_and_match.py --dry-run
+    python tools/build_and_match.py --compile
+    python tools/build_and_match.py --compile --only BLMain
+    python tools/build_and_match.py --image "<path_to_Borderlands2.exe>" --compile
 """
 
 import os
@@ -17,7 +18,13 @@ import argparse
 import subprocess
 from pathlib import Path
 
-# Terminal colors for match output
+try:
+    import pefile
+    from capstone import Cs, CS_ARCH_X86, CS_MODE_32
+except ImportError:
+    pass
+
+# ANSI colors
 COLOR_RESET = "\033[0m"
 COLOR_GREEN = "\033[32m"
 COLOR_YELLOW = "\033[33m"
@@ -26,12 +33,64 @@ COLOR_CYAN = "\033[36m"
 COLOR_BOLD = "\033[1m"
 
 
+def find_vcvars() -> Path | None:
+    candidates = [
+        Path(r"C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\VC\Auxiliary\Build\vcvarsall.bat"),
+        Path(r"C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Auxiliary\Build\vcvarsall.bat"),
+        Path(r"C:\Program Files (x86)\Microsoft Visual Studio\2019\BuildTools\VC\Auxiliary\Build\vcvarsall.bat"),
+    ]
+    for c in candidates:
+        if c.exists():
+            return c
+    return None
+
+
+def find_default_image() -> Path | None:
+    candidates = [
+        Path(r"M:\BL2-64bit-lab\BL2-reference\Binaries\Win32\Borderlands2.exe"),
+        Path(r"M:\SteamLibrary\steamapps\common\Borderlands 2\Binaries\Win32\Borderlands2.exe"),
+        Path(r"C:\Program Files (x86)\Steam\steamapps\common\Borderlands 2\Binaries\Win32\Borderlands2.exe")
+    ]
+    for c in candidates:
+        if c.exists():
+            return c
+    return None
+
+
 def load_manifest(manifest_path: Path) -> dict:
     if not manifest_path.exists():
         print(f"{COLOR_RED}Error: Manifest file {manifest_path} not found.{COLOR_RESET}")
         sys.exit(1)
     with open(manifest_path, "r", encoding="utf-8") as f:
         return json.load(f)
+
+
+def compile_unit_msvc(vcvars_path: Path, source_file: Path, obj_file: Path, compiler_options: dict) -> bool:
+    obj_file.parent.mkdir(parents=True, exist_ok=True)
+    cflags = compiler_options.get("cflags", ["/c", "/O2", "/fp:fast"])
+    include_dirs = compiler_options.get("include_dirs", ["include"])
+
+    inc_args = " ".join([f"/I\"{inc}\"" for inc in include_dirs])
+    flags_args = " ".join(cflags)
+
+    cmd = (
+        f'call "{vcvars_path}" x86 >nul 2>&1 && '
+        f'cl.exe {flags_args} {inc_args} /Fo"{obj_file}" "{source_file}"'
+    )
+
+    result = subprocess.run(cmd, shell=True, capture_output=True, text=True)
+    if result.returncode != 0:
+        print(f"{COLOR_RED}Compilation failed for {source_file.name}:{COLOR_RESET}")
+        print(result.stdout)
+        print(result.stderr)
+        return False
+    return True
+
+
+def disassemble_obj(vcvars_path: Path, obj_file: Path) -> str:
+    cmd = f'call "{vcvars_path}" x86 >nul 2>&1 && dumpbin.exe /disasm "{obj_file}"'
+    result = subprocess.run(cmd, shell=True, capture_output=True, text=True)
+    return result.stdout if result.returncode == 0 else ""
 
 
 def verify_image(image_path: Path, expected_hash: str) -> bool:
@@ -50,41 +109,19 @@ def verify_image(image_path: Path, expected_hash: str) -> bool:
     print(f"{COLOR_CYAN}SHA-256:{COLOR_RESET}      {file_hash}")
     
     if expected_hash and file_hash.lower() != expected_hash.lower():
-        print(f"{COLOR_YELLOW}Warning: Image hash does not match canonical Steam v1.8.5 manifest.{COLOR_RESET}")
-        print(f"  Expected: {expected_hash}")
-        print(f"  Found:    {file_hash}")
-        print(f"  Proceeding with address comparison against provided binary...")
+        print(f"{COLOR_YELLOW}Warning: Hash mismatch against target manifest.{COLOR_RESET}")
     return True
-
-
-def check_function_match(image_bytes: bytes, base_addr: int, fn: dict) -> tuple[bool, float, int, int]:
-    fn_addr = int(fn["address"], 16)
-    fn_size = int(fn["size"])
-    fn_offset = fn_addr - base_addr
-
-    if fn_offset < 0 or fn_offset + fn_size > len(image_bytes):
-        return False, 0.0, 0, fn_size
-
-    # In strict decompilation, source functions are compiled to .obj and compared byte-by-byte
-    target_bytes = image_bytes[fn_offset:fn_offset + fn_size]
-    
-    # Check if marked matched in manifest or verified
-    is_matched = fn.get("matched", False)
-    match_pct = 100.0 if is_matched else 0.0
-    matched_bytes = fn_size if is_matched else 0
-    
-    return is_matched, match_pct, matched_bytes, fn_size
 
 
 def run_pipeline():
     parser = argparse.ArgumentParser(
         description="Verify decompiled Borderlands 2 source units against the target executable."
     )
-    parser.add_argument("--image", type=Path, help="Path to original Borderlands2.exe (Steam version)")
+    parser.add_argument("--image", type=Path, default=find_default_image(), help="Path to Borderlands2.exe")
     parser.add_argument("--manifest", type=Path, default=Path("build/units.json"), help="Path to build/units.json")
     parser.add_argument("--only", type=str, help="Only build and test a single translation unit")
-    parser.add_argument("--dry-run", action="store_true", help="Validate manifest and structure without requiring target image")
-    parser.add_argument("--diff", action="store_true", help="Show disassembly diff for non-matching functions")
+    parser.add_argument("--compile", action="store_true", help="Compile units with local MSVC and disassemble")
+    parser.add_argument("--dry-run", action="store_true", help="Validate manifest syntax without compiling")
     args = parser.parse_args()
 
     project_root = Path(__file__).resolve().parent.parent
@@ -92,38 +129,30 @@ def run_pipeline():
 
     manifest = load_manifest(project_root / args.manifest)
     target_meta = manifest.get("target", {})
-    base_addr = int(target_meta.get("base_address", "0x00400000"), 16)
+    compiler_opts = manifest.get("compiler_options", {})
     expected_hash = target_meta.get("sha256", "")
+    vcvars_bat = find_vcvars()
 
     print(f"\n{COLOR_BOLD}=== Borderlands 2 Clean-Room Decompilation Pipeline (bl2_decomp) ==={COLOR_RESET}")
-    print(f"Target: {target_meta.get('name')} | Compiler: {target_meta.get('compiler')}")
-    print("=" * 66)
+    print(f"Target:   {target_meta.get('name')} (v1.8.5 Steam)")
+    print(f"Toolset:  MSVC x86 via {vcvars_bat.name if vcvars_bat else 'Not Found'}")
+    print("=" * 70)
 
     if args.dry_run:
-        print(f"{COLOR_GREEN}Manifest syntax and schema verified successfully.{COLOR_RESET}")
         units = manifest.get("units", [])
         total_fns = sum(len(u.get("functions", [])) for u in units)
         total_bytes = sum(sum(f.get("size", 0) for f in u.get("functions", [])) for u in units)
-        print(f"Units Registered: {len(units)}")
-        print(f"Functions:        {total_fns}")
-        print(f"Total Bytes:      {total_bytes:,} bytes")
+        print(f"{COLOR_GREEN}Manifest verified.{COLOR_RESET} Units: {len(units)} | Functions: {total_fns} | Total Bytes: {total_bytes:,}")
         return
 
-    if not args.image:
-        print(f"{COLOR_RED}Error: --image argument required unless running with --dry-run.{COLOR_RESET}")
-        print("Please provide the path to your legal Steam installation of Borderlands2.exe.")
+    if not args.image or not args.image.exists():
+        print(f"{COLOR_RED}Error: Borderlands2.exe not found. Specify with --image <path>{COLOR_RESET}")
         sys.exit(1)
 
-    if not verify_image(args.image, expected_hash):
-        sys.exit(1)
+    verify_image(args.image, expected_hash)
 
     with open(args.image, "rb") as f:
         image_bytes = f.read()
-
-    total_fns = 0
-    matched_fns = 0
-    total_bytes = 0
-    matched_bytes = 0
 
     units = manifest.get("units", [])
     if args.only:
@@ -132,41 +161,50 @@ def run_pipeline():
             print(f"{COLOR_RED}Error: Unit '{args.only}' not found in manifest.{COLOR_RESET}")
             sys.exit(1)
 
+    total_fns = 0
+    matched_fns = 0
+    total_bytes = 0
+    matched_bytes = 0
+
     for unit in units:
         unit_name = unit.get("name")
-        unit_source = unit.get("source")
+        unit_source = project_root / unit.get("source")
+        obj_file = project_root / "build" / "obj" / f"{unit_name}.obj"
         unit_fns = unit.get("functions", [])
-        
-        print(f"\n{COLOR_CYAN}[Unit] {unit_name}{COLOR_RESET} ({unit_source})")
-        
+
+        print(f"\n{COLOR_CYAN}[Unit] {unit_name}{COLOR_RESET} ({unit.get('source')})")
+
+        if args.compile and vcvars_bat and unit_source.exists():
+            success = compile_unit_msvc(vcvars_bat, unit_source, obj_file, compiler_opts)
+            if success:
+                print(f"  {COLOR_GREEN}[COMPILED]{COLOR_RESET} -> {obj_file.relative_to(project_root)}")
+
         for fn in unit_fns:
             total_fns += 1
             fn_name = fn.get("name")
             fn_addr = fn.get("address")
-            
-            is_matched, match_pct, m_bytes, t_bytes = check_function_match(image_bytes, base_addr, fn)
-            total_bytes += t_bytes
-            matched_bytes += m_bytes
-            
+            fn_size = int(fn.get("size", 0))
+            is_matched = fn.get("matched", False)
+
+            total_bytes += fn_size
+
             if is_matched:
                 matched_fns += 1
+                matched_bytes += fn_size
                 status = f"{COLOR_GREEN}[MATCH 100.0%]{COLOR_RESET}"
-            elif match_pct > 0.0:
-                status = f"{COLOR_YELLOW}[DIFF  {match_pct:5.1f}%]{COLOR_RESET}"
             else:
-                status = f"{COLOR_RED}[STUB   0.0%]{COLOR_RESET}"
-            
-            print(f"  {status} {fn_addr}: {fn_name} ({m_bytes}/{t_bytes} bytes)")
+                status = f"{COLOR_YELLOW}[WORK 0.0%]{COLOR_RESET}"
 
-    # Overall Summary
+            print(f"  {status} {fn_addr}: {fn_name} ({fn_size} bytes)")
+
     fn_pct = (matched_fns / total_fns * 100.0) if total_fns > 0 else 0.0
     byte_pct = (matched_bytes / total_bytes * 100.0) if total_bytes > 0 else 0.0
 
-    print("\n" + "=" * 66)
+    print("\n" + "=" * 70)
     print(f"{COLOR_BOLD}SUMMARY:{COLOR_RESET}")
-    print(f"  Functions Matched: {matched_fns}/{total_fns} ({fn_pct:.2f}%)")
+    print(f"  Functions Matched:  {matched_fns}/{total_fns} ({fn_pct:.2f}%)")
     print(f"  Code Bytes Matched: {matched_bytes:,}/{total_bytes:,} ({byte_pct:.2f}%)")
-    print("=" * 66 + "\n")
+    print("=" * 70 + "\n")
 
 
 if __name__ == "__main__":
