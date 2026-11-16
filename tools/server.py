@@ -154,24 +154,38 @@ class ClusterRequestHandler(BaseHTTPRequestHandler):
     def do_GET(self):
         now = time.time()
         if self.path.startswith("/task"):
+            from urllib.parse import urlparse, parse_qs
+            parsed = urlparse(self.path)
+            params = parse_qs(parsed.query)
+            worker_tier = params.get("tier", ["all"])[0]
+            worker_id = params.get("worker_id", ["unknown"])[0]
+
             manifest = load_manifest()
             units = manifest.get("units", [])
             for u in units:
                 unit_name = u.get("name")
                 for fn in u.get("functions", []):
                     addr = fn.get("address")
+                    size = fn.get("size", 32)
                     if not fn.get("matched", False):
+                        # Task routing funnel: small workers only get small functions (<= 64 bytes)
+                        if worker_tier == "small" and size > 64:
+                            continue
+                        if worker_tier == "large" and size <= 48:
+                            # Large workers prioritize complex functions (> 48 bytes)
+                            continue
+
                         lease = ACTIVE_LEASES.get(addr)
                         if not lease or (now - lease[1] > LEASE_TIMEOUT_SECONDS):
-                            ACTIVE_LEASES[addr] = ("worker", now)
-                            disasm = get_function_disassembly(addr, fn.get("size", 32))
+                            ACTIVE_LEASES[addr] = (worker_id, now)
+                            disasm = get_function_disassembly(addr, size)
                             resp = {
                                 "status": "assigned",
                                 "unit": unit_name,
                                 "source": u.get("source"),
                                 "address": addr,
                                 "name": fn.get("name"),
-                                "size": fn.get("size"),
+                                "size": size,
                                 "signature": fn.get("signature"),
                                 "disassembly": disasm
                             }

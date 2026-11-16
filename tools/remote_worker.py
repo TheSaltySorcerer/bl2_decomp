@@ -27,9 +27,12 @@ COLOR_CYAN = "\033[36m"
 COLOR_BOLD = "\033[1m"
 
 
-SYSTEM_PROMPT = """You are an expert reverse engineer and MSVC x86 systems programmer working on the 1:1 clean-room decompilation of Borderlands 2 (Borderlands2.exe).
-Your task is to convert the provided x86 assembly instructions into standard, clean C++ code that compiles with MSVC under /O2 /fp:fast to the exact same machine code bytes.
-Output ONLY the raw C++ function implementation inside a single markdown code block (```cpp ... ```). Do NOT include conversational filler."""
+SYSTEM_PROMPT = """You are an expert Unreal Engine 3 / WillowEngine reverse engineer matching x86 machine code for Borderlands 2 (Borderlands2.exe) using MSVC 2010 (cl.exe /O2 /fp:fast).
+MANDATORY REVERSE-ENGINEERING GUIDELINES:
+1. DO NOT use SSE/AVX intrinsics (_mm_loadu_ps, __m128) or inline assembly (__asm). Gearbox developers wrote clean, standard C++. MSVC's optimizer auto-vectorizes struct/vector copies into movups/movaps. Write standard C++ field assignments (e.g. Location = station->Location).
+2. DO NOT redeclare existing types, structs, or enums (FVector, FRotator, FName, FHitResult, EElementalDamageType, AActor, etc.). They are already included in Common.h and WillowGame.h.
+3. In 32-bit x86 __thiscall methods, register ECX holds the 'this' pointer. Member variable offsets like [ecx+0x1A4] correspond to class member fields.
+4. Output ONLY the raw C++ function implementation inside a single markdown code block (```cpp ... ```). Do NOT include conversational filler."""
 
 
 def query_local_llm(endpoint: str, model: str, prompt: str) -> str:
@@ -46,7 +49,7 @@ def query_local_llm(endpoint: str, model: str, prompt: str) -> str:
     data = json.dumps(payload).encode("utf-8")
     req = request.Request(url, data=data, headers={"Content-Type": "application/json"})
     try:
-        with request.urlopen(req, timeout=90) as resp:
+        with request.urlopen(req, timeout=300) as resp:
             body = json.loads(resp.read().decode("utf-8"))
             return body["choices"][0]["message"]["content"]
     except Exception as e:
@@ -68,16 +71,22 @@ def run_worker():
     parser.add_argument("--llm", type=str, default="http://127.0.0.1:11434/v1", help="Local LLM endpoint")
     parser.add_argument("--model", type=str, default="qwen2.5-coder:7b", help="Model name in local runtime")
     parser.add_argument("--worker-id", type=str, default="legion_rtx5060", help="Worker node identifier")
+    parser.add_argument("--tier", type=str, default="", help="Worker tier: 'small' (<=48 bytes) or 'large' (>48 bytes)")
     args = parser.parse_args()
+
+    tier = args.tier
+    if not tier:
+        tier = "large" if any(k in args.model.lower() for k in ["14b", "32b", "70b"]) else "small"
 
     print(f"\n{COLOR_BOLD}=== bl2_decomp Remote Worker Node ({args.worker_id}) ==={COLOR_RESET}")
     print(f"Master Server: {args.server}")
     print(f"Local LLM:     {args.llm} ({args.model})")
+    print(f"Routing Tier:  {tier.upper()} (small: <=48B leaves/thunks, large: complex logic)")
     print("=" * 66)
 
     while True:
         try:
-            req = request.Request(f"{args.server}/task?worker_id={args.worker_id}")
+            req = request.Request(f"{args.server}/task?worker_id={args.worker_id}&tier={tier}")
             with request.urlopen(req, timeout=10) as resp:
                 task = json.loads(resp.read().decode("utf-8"))
         except Exception as e:
@@ -86,7 +95,7 @@ def run_worker():
             continue
 
         if task.get("status") != "assigned":
-            print(f"{COLOR_CYAN}[Idle] No tasks available. Sleeping 10s...{COLOR_RESET}")
+            print(f"{COLOR_CYAN}[Idle] No tasks available for tier '{tier}'. Sleeping 10s...{COLOR_RESET}")
             time.sleep(10)
             continue
 
@@ -111,9 +120,10 @@ def run_worker():
             f"Please generate the C++ function implementation matching this assembly."
         )
 
+        current_prompt = prompt
         for attempt in range(1, 4):
             print(f"  -> Generating candidate C++ (Attempt {attempt}/3)...")
-            raw_response = query_local_llm(args.llm, args.model, prompt)
+            raw_response = query_local_llm(args.llm, args.model, current_prompt)
             candidate_code = clean_code_block(raw_response)
 
             if not candidate_code:
@@ -143,9 +153,14 @@ def run_worker():
                 print(f"  {COLOR_GREEN}[SUCCESS] Function {addr} matched 100% and accepted by master!{COLOR_RESET}")
                 break
             else:
-                err = result.get("error", "Opcode mismatch")
-                print(f"  {COLOR_YELLOW}[Retry] Submission rejected: {err[:80]}...{COLOR_RESET}")
-                prompt += f"\n\nPrevious candidate failed with:\n{err}\nPlease correct and retry."
+                err = result.get("error", "Byte mismatch")
+                print(f"  {COLOR_YELLOW}[Retry] Submission rejected: {err[:90]}...{COLOR_RESET}")
+                current_prompt = (
+                    f"{prompt}\n\n"
+                    f"[PREVIOUS ATTEMPT {attempt} FAILED WITH MSVC FEEDBACK]:\n"
+                    f"{err}\n\n"
+                    f"Adjust your code: fix any compiler errors, do NOT use SIMD intrinsics or redefine types, and match the target assembly bytes."
+                )
                 time.sleep(2)
 
         time.sleep(2)
