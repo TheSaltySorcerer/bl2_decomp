@@ -51,4 +51,8 @@ typedef double    DOUBLE;
 #define MATCH_OFFSET(addr)
 #define DECOMP_FUNCTION(addr, size)
 
+// Global BL2 engine stubs
+void Init_004050f0();
+extern void* g_GlobalObj_19f29a4;
+
 #endif // BL2_DECOMP_COMMON_H
