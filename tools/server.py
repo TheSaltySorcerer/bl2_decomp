@@ -16,7 +16,9 @@ import struct
 import argparse
 import subprocess
 from pathlib import Path
-from http.server import HTTPServer, BaseHTTPRequestHandler
+import socket
+import threading
+from http.server import HTTPServer, ThreadingHTTPServer, BaseHTTPRequestHandler
 
 try:
     import pefile
@@ -45,12 +47,52 @@ LEASE_TIMEOUT_SECONDS = 60
 FAILURES_BY_ADDR = {}  # address -> {"count": int, "errors": list, "last_code": str, "workers": list, "tier_fails": dict}
 FUNCTION_TIERS = {}  # address -> int (1=1.5B, 2=7B, 3=14B, 4=Antigravity)
 ESCALATIONS = {}  # address -> dict
+REGISTERED_WORKERS = {}  # worker_id -> dict(worker_id, model, tier, tok_s, time_per_attempt, attempt_budget_5m, hardware, last_seen, ...)
+
 # 5 minutes of compute per model tier on the high end of complete attempts:
 # Tier 1 (1.5B @ 114 tok/s, ~1.1s/attempt): 250 attempts (~4.6 min)
 # Tier 2 (7B @ 62 tok/s, ~2.0s/attempt): 150 attempts (~5.0 min)
 # Tier 3 (14B CPU @ 3.5 tok/s, ~48s/attempt): 8 attempts (~6.4 min)
 MAX_TIER_FAILURES = {1: 250, 2: 150, 3: 8}
 UNIT_GUIDELINES = {}  # unit_name -> str (pattern guideline applied to all functions in unit)
+
+
+def calibrate_worker(model_name: str, benchmark_tok_s: float = 0.0, hardware: str = "") -> dict:
+    """Calibrates worker tier and calculates exact 5-minute attempt budget."""
+    m_lower = model_name.lower()
+    h_lower = hardware.lower()
+    if "1.5b" in m_lower or "1b" in m_lower or "scout" in m_lower:
+        tier = 1
+        default_tok_s = 90.0
+    elif any(k in m_lower for k in ["7b", "8b", "mid"]):
+        tier = 2
+        default_tok_s = 50.0
+    elif any(k in m_lower for k in ["14b", "32b", "heavy", "large"]):
+        tier = 3
+        default_tok_s = 4.0 if ("cpu" in h_lower or "5800x" in h_lower or "wsl" in h_lower) else 25.0
+    else:
+        tier = 2
+        default_tok_s = 30.0
+
+    tok_s = benchmark_tok_s if benchmark_tok_s > 0 else default_tok_s
+    # Net attempt latency: ~200 tokens (prompt ingestion + code output) / tok_s + 1.5s network round-trip + MSVC compilation
+    est_attempt_time = max(1.2, (200.0 / max(0.5, tok_s)) + 1.5)
+    # Exactly 5 minutes = 300 seconds of dedicated execution:
+    attempts_in_5m = max(3, int(round(300.0 / est_attempt_time)))
+    return {
+        "tier": tier,
+        "tok_s": tok_s,
+        "time_per_attempt": round(est_attempt_time, 2),
+        "attempt_budget_5m": attempts_in_5m
+    }
+
+
+def update_tier_thresholds():
+    """Recalibrates MAX_TIER_FAILURES based on active registered workers."""
+    for t in [1, 2, 3]:
+        budgets = [w["attempt_budget_5m"] for w in REGISTERED_WORKERS.values() if w.get("tier") == t]
+        if budgets:
+            MAX_TIER_FAILURES[t] = max(budgets)
 
 
 def get_function_tier(addr: str, size: int) -> int:
@@ -194,6 +236,43 @@ def test_compile_match(unit_name: str, fn_addr: str, fn_size: int, candidate_cod
 
 
 
+def get_master_lan_ip() -> str:
+    try:
+        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        s.connect(("8.8.8.8", 53))
+        ip = s.getsockname()[0]
+        s.close()
+        return ip
+    except Exception:
+        return "172.16.77.10"
+
+
+def start_udp_beacon_responder(http_port: int = 8080, udp_port: int = 8088):
+    def responder_loop():
+        sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        try:
+            sock.bind(("0.0.0.0", udp_port))
+        except Exception as e:
+            print(f"[Discovery] UDP beacon could not bind {udp_port}: {e}")
+            return
+        while True:
+            try:
+                data, addr = sock.recvfrom(1024)
+                msg = data.decode("utf-8", errors="ignore").strip()
+                if "BL2_DECOMP_DISCOVER" in msg:
+                    master_ip = get_master_lan_ip()
+                    reply = json.dumps({
+                        "service": "bl2_decomp_master",
+                        "server_url": f"http://{master_ip}:{http_port}"
+                    }).encode("utf-8")
+                    sock.sendto(reply, addr)
+            except Exception:
+                pass
+    t = threading.Thread(target=responder_loop, daemon=True)
+    t.start()
+
+
 class ClusterRequestHandler(BaseHTTPRequestHandler):
     def _send_json(self, status: int, data: dict):
         body = json.dumps(data).encode("utf-8")
@@ -220,6 +299,27 @@ class ClusterRequestHandler(BaseHTTPRequestHandler):
             else:
                 w_tier = 2
             worker_id = params.get("worker_id", ["unknown"])[0]
+
+            # Worker heartbeat and auto-discovery registration
+            if worker_id in REGISTERED_WORKERS:
+                REGISTERED_WORKERS[worker_id]["last_seen"] = now
+            elif worker_id not in ("unknown", "antigravity"):
+                calib = calibrate_worker(tier_str, 0.0, "auto_detected")
+                REGISTERED_WORKERS[worker_id] = {
+                    "worker_id": worker_id,
+                    "model": tier_str,
+                    "tier": w_tier,
+                    "tok_s": calib["tok_s"],
+                    "time_per_attempt": calib["time_per_attempt"],
+                    "attempt_budget_5m": calib["attempt_budget_5m"],
+                    "hardware": "auto",
+                    "client_ip": self.client_address[0],
+                    "registered_at": now,
+                    "last_seen": now,
+                    "total_submitted": 0,
+                    "total_matches": 0
+                }
+                update_tier_thresholds()
 
             manifest = load_manifest()
             units = manifest.get("units", [])
@@ -280,6 +380,58 @@ class ClusterRequestHandler(BaseHTTPRequestHandler):
                 ACTIVE_LEASES.pop(addr, None)
                 return self._send_json(200, {"status": "released", "address": addr})
             return self._send_json(400, {"error": "Missing address"})
+        elif self.path == "/workers":
+            return self._send_json(200, {
+                "active_count": len(REGISTERED_WORKERS),
+                "thresholds": MAX_TIER_FAILURES,
+                "workers": REGISTERED_WORKERS
+            })
+        elif self.path == "/worker.py":
+            worker_script_path = PROJECT_ROOT / "tools" / "remote_worker.py"
+            if worker_script_path.exists():
+                with open(worker_script_path, "rb") as f:
+                    content = f.read()
+                self.send_response(200)
+                self.send_header("Content-Type", "text/plain; charset=utf-8")
+                self.send_header("Content-Length", str(len(content)))
+                self.end_headers()
+                self.wfile.write(content)
+            else:
+                self._send_json(404, {"error": "worker.py not found"})
+        elif self.path == "/join.ps1":
+            master_ip = get_master_lan_ip()
+            script = f"""# BL2 Decomp Automated Cluster Join Script
+$ServerUrl = "http://{master_ip}:8080"
+Write-Host "=== BL2 Decomp Cluster Join ===" -ForegroundColor Cyan
+Write-Host "Connecting to Master Server: $ServerUrl" -ForegroundColor Yellow
+
+if (-not (Get-Command python -ErrorAction SilentlyContinue)) {{
+    Write-Host "Python not found. Please install Python 3.10+." -ForegroundColor Red
+    exit 1
+}}
+
+$WorkerScript = "$env:TEMP\\bl2_remote_worker.py"
+Write-Host "Fetching latest worker protocol from master..." -ForegroundColor Gray
+Invoke-WebRequest -Uri "$ServerUrl/worker.py" -OutFile $WorkerScript
+
+$Model = "qwen2.5-coder:1.5b"
+try {{
+    $tags = Invoke-RestMethod -Uri "http://127.0.0.1:11434/api/tags" -TimeoutSec 2
+    if ($tags.models -and $tags.models.Count -gt 0) {{
+        $Model = $tags.models[0].name
+    }}
+}} catch {{}}
+
+$WorkerId = "$env:COMPUTERNAME".ToLower()
+Write-Host "Joining swarm as Worker: $WorkerId using model: $Model" -ForegroundColor Green
+python -u $WorkerScript --server $ServerUrl --model $Model --worker-id $WorkerId --auto
+"""
+            encoded = script.encode("utf-8")
+            self.send_response(200)
+            self.send_header("Content-Type", "text/plain; charset=utf-8")
+            self.send_header("Content-Length", str(len(encoded)))
+            self.end_headers()
+            self.wfile.write(encoded)
         elif self.path == "/setup.ps1":
             setup_script_path = Path(r"C:\MindVault\deploy_agent_bridge.ps1")
             if setup_script_path.exists():
@@ -313,7 +465,46 @@ class ClusterRequestHandler(BaseHTTPRequestHandler):
             self._send_json(404, {"error": "Not found"})
 
     def do_POST(self):
-        if self.path == "/submit":
+        if self.path == "/register_worker":
+            length = int(self.headers.get("Content-Length", 0))
+            body = self.rfile.read(length)
+            try:
+                data = json.loads(body.decode("utf-8"))
+            except Exception:
+                return self._send_json(400, {"error": "Invalid JSON"})
+
+            worker_id = data.get("worker_id", f"worker_{int(time.time())}")
+            model = data.get("model", "qwen2.5-coder:7b")
+            tok_s = float(data.get("benchmark_tok_s", 0.0))
+            hardware = data.get("hardware", "")
+
+            calib = calibrate_worker(model, tok_s, hardware)
+            REGISTERED_WORKERS[worker_id] = {
+                "worker_id": worker_id,
+                "model": model,
+                "tier": calib["tier"],
+                "tok_s": calib["tok_s"],
+                "time_per_attempt": calib["time_per_attempt"],
+                "attempt_budget_5m": calib["attempt_budget_5m"],
+                "hardware": hardware,
+                "client_ip": self.client_address[0],
+                "registered_at": time.time(),
+                "last_seen": time.time(),
+                "total_submitted": 0,
+                "total_matches": 0
+            }
+            update_tier_thresholds()
+            print(f"\n{COLOR_GREEN}[New Worker Registered]{COLOR_RESET} '{worker_id}' | Model: {model} | Tier: {calib['tier']} | Speed: {calib['tok_s']} tok/s | 5-Min Budget: {calib['attempt_budget_5m']} attempts")
+            return self._send_json(200, {
+                "status": "registered",
+                "worker_id": worker_id,
+                "tier": calib["tier"],
+                "attempt_budget_5m": calib["attempt_budget_5m"],
+                "est_attempt_time": calib["time_per_attempt"],
+                "thresholds": MAX_TIER_FAILURES
+            })
+
+        elif self.path == "/submit":
             length = int(self.headers.get("Content-Length", 0))
             body = self.rfile.read(length)
             try:
@@ -342,10 +533,15 @@ class ClusterRequestHandler(BaseHTTPRequestHandler):
                 FAILURES_BY_ADDR.pop(fn_addr, None)
                 ESCALATIONS.pop(fn_addr, None)
                 save_escalations()
+                if worker_id in REGISTERED_WORKERS:
+                    REGISTERED_WORKERS[worker_id]["total_submitted"] += 1
+                    REGISTERED_WORKERS[worker_id]["total_matches"] += 1
                 return self._send_json(200, {"status": "accepted", "match_pct": 100.0})
             else:
                 print(f"  {COLOR_RED}[REJECTED]{COLOR_RESET} {detail[:120]}")
                 ACTIVE_LEASES.pop(fn_addr, None)
+                if worker_id in REGISTERED_WORKERS:
+                    REGISTERED_WORKERS[worker_id]["total_submitted"] += 1
 
                 # Record failure & check step-up promotion
                 w_tier = int(data.get("worker_tier", 1))
@@ -448,12 +644,14 @@ def main():
     args = parser.parse_args()
 
     os.chdir(PROJECT_ROOT)
+    start_udp_beacon_responder(http_port=args.port, udp_port=8088)
     server_address = ("0.0.0.0", args.port)
-    httpd = HTTPServer(server_address, ClusterRequestHandler)
+    httpd = ThreadingHTTPServer(server_address, ClusterRequestHandler)
 
     print(f"\n{COLOR_BOLD}=== bl2_decomp Master Task Server ==={COLOR_RESET}")
     print(f"Listening: http://0.0.0.0:{args.port}")
     print(f"Image:     {TARGET_IMAGE}")
+    print(f"Discovery: UDP beacon active on port 8088")
     print("Ready to serve tasks to local and remote nodes...\n")
 
     try:
