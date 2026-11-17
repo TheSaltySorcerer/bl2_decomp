@@ -17,6 +17,7 @@ import argparse
 import subprocess
 import re
 import hashlib
+import sqlite3
 from pathlib import Path
 import socket
 import threading
@@ -42,8 +43,10 @@ ESCALATIONS_PATH = PROJECT_ROOT / "build" / "escalations.json"
 ALERT_FLAG_PATH = PROJECT_ROOT / "build" / "escalation_alert.flag"
 CACHE_DIR = PROJECT_ROOT / "build" / "cache"
 CACHE_DIR.mkdir(parents=True, exist_ok=True)
+DB_PATH = CACHE_DIR / "decomp_knowledge.db"
 HIGH_WATER_FILE = CACHE_DIR / "high_water.json"
 ARCHETYPES_FILE = CACHE_DIR / "archetypes.json"
+PROMOTION_DRAFT_THRESHOLD = 75.0  # Only drafts >= 75% are permitted into persistent knowledge base
 TARGET_IMAGE = Path(r"M:\BL2-64bit-lab\BL2-reference\Binaries\Win32\Borderlands2.exe")
 VCVARS_BAT = Path(r"C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\VC\Auxiliary\Build\vcvarsall.bat")
 
@@ -596,6 +599,40 @@ python -u $WorkerScript --server $ServerUrl --model $Model --worker-id $WorkerId
                 self.wfile.write(content)
             else:
                 self._send_json(404, {"error": "Setup script not found"})
+        elif self.path.startswith("/query_db"):
+            from urllib.parse import urlparse, parse_qs
+            parsed = urlparse(self.path)
+            qs = parse_qs(parsed.query)
+            search_term = qs.get("search", [""])[0]
+            op_hash = qs.get("opcode_hash", [""])[0]
+            addr = qs.get("address", [""])[0]
+
+            if not DB_PATH.exists():
+                return self._send_json(404, {"error": "Database not initialized"})
+
+            try:
+                conn = sqlite3.connect(f"file:{DB_PATH}?mode=ro", uri=True, timeout=5.0)
+                conn.row_factory = sqlite3.Row
+                cur = conn.cursor()
+                results = []
+                if addr:
+                    cur.execute("SELECT address, name, class_name, signature, header_declaration, size, raw_bytes_hash, opcode_hash, matched, matched_code, high_water_code, high_water_pct, disassembly FROM functions WHERE address = ?;", (addr,))
+                    r = cur.fetchone()
+                    if r:
+                        results.append(dict(r))
+                elif op_hash:
+                    cur.execute("SELECT address, name, class_name, size, matched, matched_code, high_water_code, high_water_pct FROM functions WHERE opcode_hash = ?;", (op_hash,))
+                    for r in cur.fetchall():
+                        results.append(dict(r))
+                elif search_term:
+                    cur.execute("SELECT f.address, f.name, f.class_name, f.header_declaration, f.matched, f.matched_code, f.high_water_code FROM functions_fts fts JOIN functions f ON f.address = fts.address WHERE functions_fts MATCH ? LIMIT 15;", (search_term,))
+                    for r in cur.fetchall():
+                        results.append(dict(r))
+                conn.close()
+                return self._send_json(200, {"count": len(results), "results": results})
+            except Exception as e:
+                return self._send_json(500, {"error": str(e)})
+
         elif self.path == "/status":
             manifest = load_manifest()
             total_fns = 0
@@ -695,6 +732,18 @@ python -u $WorkerScript --server $ServerUrl --model $Model --worker-id $WorkerId
                     save_archetypes_cache(ARCHETYPES_CACHE)
                     print(f"  {COLOR_GREEN}[Archetype Harvested]{COLOR_RESET} Hash {op_hash} registered as reusable template.")
 
+                # Update SQLite Knowledge DB
+                if DB_PATH.exists():
+                    try:
+                        conn = sqlite3.connect(str(DB_PATH), timeout=10.0)
+                        cur = conn.cursor()
+                        cur.execute("UPDATE functions SET matched = 1, matched_code = ?, updated_at = ? WHERE address = ?;", (code, time.time(), fn_addr))
+                        cur.execute("UPDATE archetypes SET template_code = ?, timestamp = ? WHERE opcode_hash = ?;", (code, time.time(), op_hash))
+                        conn.commit()
+                        conn.close()
+                    except Exception as e:
+                        print(f"DB update error: {e}")
+
                 HIGH_WATER_CACHE.pop(fn_addr, None)
                 save_high_water_cache(HIGH_WATER_CACHE)
 
@@ -712,8 +761,8 @@ python -u $WorkerScript --server $ServerUrl --model $Model --worker-id $WorkerId
                 if worker_id in REGISTERED_WORKERS:
                     REGISTERED_WORKERS[worker_id]["total_submitted"] += 1
 
-                # High-Water Draft Evaluation (>= 50% persisted, < 50% quarantined)
-                if match_pct >= 50.0:
+                # Gatekeeper Draft Promotion: Only drafts >= 75% are permitted into persistent knowledge base
+                if match_pct >= PROMOTION_DRAFT_THRESHOLD:
                     prev_best = HIGH_WATER_CACHE.get(fn_addr, {}).get("match_pct", 0.0)
                     if match_pct > prev_best:
                         HIGH_WATER_CACHE[fn_addr] = {
@@ -724,12 +773,21 @@ python -u $WorkerScript --server $ServerUrl --model $Model --worker-id $WorkerId
                             "iterations_stalled": 0
                         }
                         save_high_water_cache(HIGH_WATER_CACHE)
-                        print(f"  {COLOR_GREEN}[High-Water Draft Saved]{COLOR_RESET} {fn_addr}: {match_pct:.1f}% accuracy saved to cache")
+                        if DB_PATH.exists():
+                            try:
+                                conn = sqlite3.connect(str(DB_PATH), timeout=10.0)
+                                cur = conn.cursor()
+                                cur.execute("UPDATE functions SET high_water_code = ?, high_water_pct = ?, iterations_stalled = 0, updated_at = ? WHERE address = ?;", (code, match_pct, time.time(), fn_addr))
+                                conn.commit()
+                                conn.close()
+                            except Exception:
+                                pass
+                        print(f"  {COLOR_GREEN}[Gatekeeper Approved: High-Water Draft]{COLOR_RESET} {fn_addr}: {match_pct:.1f}% accuracy promoted to database")
                     else:
                         HIGH_WATER_CACHE[fn_addr]["iterations_stalled"] = HIGH_WATER_CACHE[fn_addr].get("iterations_stalled", 0) + 1
                         save_high_water_cache(HIGH_WATER_CACHE)
                 else:
-                    print(f"  {COLOR_YELLOW}[Draft Quarantined]{COLOR_RESET} {fn_addr}: {match_pct:.1f}% is below 50% threshold. Quarantined from seeding.")
+                    print(f"  {COLOR_YELLOW}[Gatekeeper Filter]{COLOR_RESET} {fn_addr}: {match_pct:.1f}% is below 75% promotion threshold. Quarantined from knowledge base.")
 
                 # Record failure & check step-up promotion
                 w_tier = int(data.get("worker_tier", 1))
