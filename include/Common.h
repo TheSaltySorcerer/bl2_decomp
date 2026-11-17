@@ -55,6 +55,7 @@ typedef double    DOUBLE;
 void Init_004050f0();
 struct FBL2GlobalDispatcher {
     void** vtbl;
+    void Init_004050f0() { ::Init_004050f0(); }
 };
 extern FBL2GlobalDispatcher* g_GlobalObj_19f29a4;
 
