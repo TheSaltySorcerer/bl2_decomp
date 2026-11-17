@@ -1,0 +1,20 @@
+{
+  "2974536a049bafb3": {
+    "archetype_name": "FBaseHelper_VTable_Constructor_Initializer",
+    "sample_addr": "0x00611610",
+    "size": 27,
+    "template_code": "void __cdecl WillowCombatLogic::Sub_00611610(void* obj) {\n    if (obj) {\n        reinterpret_cast<FBaseHelper_004ac0c0*>(obj)->Sub_004ac0c0();\n        *reinterpret_cast<DWORD*>(obj) = 0x168a0f0; // Replace with target function's vtable constant\n    }\n}"
+  },
+  "2732e3eea19f9a85": {
+    "archetype_name": "Null_Checked_Tail_Call_Dispatcher",
+    "sample_addr": "0x00603B90",
+    "size": 18,
+    "template_code": "void __cdecl WillowCombatLogic::Sub_00603B90(void* a1) {\n    if (a1) {\n        reinterpret_cast<WillowCombatLogic*>(a1)->Sub_00603960();\n    }\n}"
+  },
+  "1776605d7e3fd649": {
+    "archetype_name": "Manager_Tail_Call_Proxy",
+    "sample_addr": "0x00704470",
+    "size": 24,
+    "template_code": "struct FManager_00704400 {\n    void Sub_006c9310(void* a1, void* a2, void* a3);\n};\nextern \"C\" FManager_00704400* __cdecl Sub_00704400();\n\nvoid __stdcall WillowCombatLogic::Sub_00704470(void* a1, void* a2, void* a3) {\n    FManager_00704400* mgr = Sub_00704400();\n    if (mgr) {\n        mgr->Sub_006c9310(a1, a2, a3);\n    }\n}"
+  }
+}

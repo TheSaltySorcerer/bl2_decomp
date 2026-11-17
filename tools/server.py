@@ -15,6 +15,8 @@ import time
 import struct
 import argparse
 import subprocess
+import re
+import hashlib
 from pathlib import Path
 import socket
 import threading
@@ -38,6 +40,10 @@ PROJECT_ROOT = Path(__file__).resolve().parent.parent
 MANIFEST_PATH = PROJECT_ROOT / "build" / "units.json"
 ESCALATIONS_PATH = PROJECT_ROOT / "build" / "escalations.json"
 ALERT_FLAG_PATH = PROJECT_ROOT / "build" / "escalation_alert.flag"
+CACHE_DIR = PROJECT_ROOT / "build" / "cache"
+CACHE_DIR.mkdir(parents=True, exist_ok=True)
+HIGH_WATER_FILE = CACHE_DIR / "high_water.json"
+ARCHETYPES_FILE = CACHE_DIR / "archetypes.json"
 TARGET_IMAGE = Path(r"M:\BL2-64bit-lab\BL2-reference\Binaries\Win32\Borderlands2.exe")
 VCVARS_BAT = Path(r"C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\VC\Auxiliary\Build\vcvarsall.bat")
 
@@ -47,8 +53,87 @@ LEASE_TIMEOUT_SECONDS = 60
 FAILURES_BY_ADDR = {}  # address -> {"count": int, "errors": list, "last_code": str, "workers": list, "tier_fails": dict}
 FUNCTION_TIERS = {}  # address -> int (1=1.5B, 2=7B, 3=14B, 4=Antigravity)
 ESCALATIONS = {}  # address -> dict
-REGISTERED_WORKERS = {}  # worker_id -> dict(worker_id, model, tier, tok_s, time_per_attempt, attempt_budget_5m, hardware, last_seen, ...)
+REGISTERED_WORKERS = {}  # worker_id -> dict(...)
 CLUSTER_PAUSED = False  # Global gaming / user pause toggle
+
+def load_high_water_cache() -> dict:
+    if HIGH_WATER_FILE.exists():
+        try:
+            with open(HIGH_WATER_FILE, "r", encoding="utf-8") as f:
+                return json.load(f)
+        except Exception:
+            pass
+    return {}
+
+def save_high_water_cache(data: dict):
+    try:
+        tmp = HIGH_WATER_FILE.with_suffix(".tmp")
+        with open(tmp, "w", encoding="utf-8") as f:
+            json.dump(data, f, indent=2)
+        tmp.replace(HIGH_WATER_FILE)
+    except Exception as e:
+        print(f"Error saving high water cache: {e}")
+
+def load_archetypes_cache() -> dict:
+    if ARCHETYPES_FILE.exists():
+        try:
+            with open(ARCHETYPES_FILE, "r", encoding="utf-8") as f:
+                return json.load(f)
+        except Exception:
+            pass
+    return {}
+
+def save_archetypes_cache(data: dict):
+    try:
+        tmp = ARCHETYPES_FILE.with_suffix(".tmp")
+        with open(tmp, "w", encoding="utf-8") as f:
+            json.dump(data, f, indent=2)
+        tmp.replace(ARCHETYPES_FILE)
+    except Exception as e:
+        print(f"Error saving archetypes cache: {e}")
+
+HIGH_WATER_CACHE = load_high_water_cache()
+ARCHETYPES_CACHE = load_archetypes_cache()
+
+def classify_compiler_error(error_text: str) -> str:
+    """Inspects compiler output and returns actionable tactical guardrails."""
+    if not error_text:
+        return ""
+    if "C2511" in error_text:
+        return "Tactical Guardrail (C2511): Member function declaration mismatch. Check static vs member method, parameter counts, and calling convention in class header."
+    if "C1075" in error_text:
+        return "Tactical Guardrail (C1075): Unmatched '{' or missing closing brace '}' in function body. Verify bracket balance."
+    if "C2039" in error_text or "C2065" in error_text:
+        return "Tactical Guardrail (C2039/C2065): Undeclared identifier or member. Check forward declarations in Common.h or WillowGame.h."
+    if "C2415" in error_text or "__asm" in error_text:
+        return "Tactical Guardrail (C2415): Inline assembly (__asm) is strictly prohibited. Implement pure ISO C++ only."
+    if "C2143" in error_text or "C2059" in error_text:
+        return "Tactical Guardrail (Syntax Error): Missing semicolon or syntax error. Check declaration syntax."
+    if "Parity mismatch" in error_text:
+        return "Tactical Guardrail: Code compiled, but emitted byte sequence differed. Check parameter stack offsets, register allocation, and tail-call returns."
+    return ""
+
+def compute_structural_opcode_hash(va: int, size: int) -> str:
+    """Extracts machine code, normalizes operands/relocations, and returns structural archetype hash."""
+    if not TARGET_IMAGE.exists():
+        return ""
+    try:
+        pe = pefile.PE(str(TARGET_IMAGE), fast_load=True)
+        rva = va - pe.OPTIONAL_HEADER.ImageBase
+        offset = pe.get_offset_from_rva(rva)
+        with open(TARGET_IMAGE, "rb") as f:
+            f.seek(offset)
+            raw_bytes = f.read(size)
+        md = Cs(CS_ARCH_X86, CS_MODE_32)
+        norm_tokens = []
+        for inst in md.disasm(raw_bytes, va):
+            norm_op = re.sub(r'0x[0-9a-fA-F]+', 'IMM', inst.op_str)
+            norm_op = re.sub(r'\b[0-9]+\b', 'NUM', norm_op)
+            norm_tokens.append(f"{inst.mnemonic}:{norm_op}")
+        norm_str = ";".join(norm_tokens)
+        return hashlib.sha256(norm_str.encode("utf-8")).hexdigest()[:16]
+    except Exception:
+        return ""
 
 # 5 minutes of compute per model tier on the high end of complete attempts:
 # Tier 1 (1.5B @ 114 tok/s, ~1.1s/attempt): 250 attempts (~4.6 min)
@@ -386,6 +471,32 @@ class ClusterRequestHandler(BaseHTTPRequestHandler):
                             disasm = get_function_disassembly(addr, size)
                             prior_errors = FAILURES_BY_ADDR.get(addr, {}).get("errors", [])
                             feedback = "\n".join(prior_errors[-2:]) if prior_errors else ""
+
+                            # Archetype & High-Water Seed Injection
+                            seed_code = ""
+                            seed_pct = 0.0
+                            adversarial_warning = ""
+
+                            va_int = int(addr, 16)
+                            op_hash = compute_structural_opcode_hash(va_int, size)
+                            if op_hash and op_hash in ARCHETYPES_CACHE:
+                                archetype_info = ARCHETYPES_CACHE[op_hash]
+                                seed_code = archetype_info.get("template_code", "")
+                                seed_pct = 100.0
+                            elif addr in HIGH_WATER_CACHE:
+                                draft = HIGH_WATER_CACHE[addr]
+                                stalled = draft.get("iterations_stalled", 0)
+                                if stalled >= 2 and w_tier >= 3:
+                                    adversarial_warning = f"INHERENT DISTRUST ALERT: Prior draft reached {draft['match_pct']}% but stalled across {stalled} consecutive worker leases. Architectural approach is likely fundamentally defective. Do NOT anchor on prior code; evaluate from first principles from the raw disassembly."
+                                    seed_code = ""
+                                    seed_pct = 0.0
+                                else:
+                                    seed_code = draft.get("code", "")
+                                    seed_pct = draft.get("match_pct", 0.0)
+
+                            last_error = prior_errors[-1] if prior_errors else ""
+                            tactical_guardrail = classify_compiler_error(last_error)
+
                             resp = {
                                 "status": "assigned",
                                 "unit": unit_name,
@@ -396,6 +507,10 @@ class ClusterRequestHandler(BaseHTTPRequestHandler):
                                 "tier": fn_tier,
                                 "signature": fn.get("signature"),
                                 "hints": get_combined_guidelines(unit_name, disasm, fn.get("hints", "")),
+                                "seed_code": seed_code,
+                                "seed_pct": seed_pct,
+                                "tactical_guardrail": tactical_guardrail,
+                                "adversarial_warning": adversarial_warning,
                                 "prior_feedback": feedback,
                                 "disassembly": disasm
                             }
@@ -566,6 +681,23 @@ python -u $WorkerScript --server $ServerUrl --model $Model --worker-id $WorkerId
                         if fn.get("address") == fn_addr:
                             fn["matched"] = True
                 save_manifest(manifest)
+
+                # Auto-harvest opcode archetype into golden bank
+                va_int = int(fn_addr, 16)
+                op_hash = compute_structural_opcode_hash(va_int, fn_size)
+                if op_hash:
+                    ARCHETYPES_CACHE[op_hash] = {
+                        "source_addr": fn_addr,
+                        "unit": unit_name,
+                        "size": fn_size,
+                        "template_code": code
+                    }
+                    save_archetypes_cache(ARCHETYPES_CACHE)
+                    print(f"  {COLOR_GREEN}[Archetype Harvested]{COLOR_RESET} Hash {op_hash} registered as reusable template.")
+
+                HIGH_WATER_CACHE.pop(fn_addr, None)
+                save_high_water_cache(HIGH_WATER_CACHE)
+
                 ACTIVE_LEASES.pop(fn_addr, None)
                 FAILURES_BY_ADDR.pop(fn_addr, None)
                 ESCALATIONS.pop(fn_addr, None)
@@ -579,6 +711,25 @@ python -u $WorkerScript --server $ServerUrl --model $Model --worker-id $WorkerId
                 ACTIVE_LEASES.pop(fn_addr, None)
                 if worker_id in REGISTERED_WORKERS:
                     REGISTERED_WORKERS[worker_id]["total_submitted"] += 1
+
+                # High-Water Draft Evaluation (>= 50% persisted, < 50% quarantined)
+                if match_pct >= 50.0:
+                    prev_best = HIGH_WATER_CACHE.get(fn_addr, {}).get("match_pct", 0.0)
+                    if match_pct > prev_best:
+                        HIGH_WATER_CACHE[fn_addr] = {
+                            "match_pct": round(match_pct, 1),
+                            "code": code,
+                            "worker_id": worker_id,
+                            "timestamp": time.time(),
+                            "iterations_stalled": 0
+                        }
+                        save_high_water_cache(HIGH_WATER_CACHE)
+                        print(f"  {COLOR_GREEN}[High-Water Draft Saved]{COLOR_RESET} {fn_addr}: {match_pct:.1f}% accuracy saved to cache")
+                    else:
+                        HIGH_WATER_CACHE[fn_addr]["iterations_stalled"] = HIGH_WATER_CACHE[fn_addr].get("iterations_stalled", 0) + 1
+                        save_high_water_cache(HIGH_WATER_CACHE)
+                else:
+                    print(f"  {COLOR_YELLOW}[Draft Quarantined]{COLOR_RESET} {fn_addr}: {match_pct:.1f}% is below 50% threshold. Quarantined from seeding.")
 
                 # Record failure & check step-up promotion
                 w_tier = int(data.get("worker_tier", 1))

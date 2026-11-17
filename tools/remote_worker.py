@@ -325,11 +325,29 @@ def run_worker():
         prior_fb = task.get("prior_feedback")
         fb_text = f"\n[PRIOR COMPILER / TIER FEEDBACK]:\n{prior_fb}\n" if prior_fb else ""
 
+        seed_code = task.get("seed_code", "")
+        seed_pct = float(task.get("seed_pct", 0.0))
+        guardrail = task.get("tactical_guardrail", "")
+        adv_warning = task.get("adversarial_warning", "")
+
+        seed_section = ""
+        if seed_code:
+            if seed_pct >= 100.0:
+                seed_section = f"\n[VERIFIED ARCHETYPE SIBLING TEMPLATE - ADAPT THIS WORKING CODE]:\n```cpp\n{seed_code}\n```\n"
+            else:
+                seed_section = f"\n[HIGH-WATER DRAFT ({seed_pct}% ACCURACY) - REFINE THIS BASE]:\n```cpp\n{seed_code}\n```\n"
+
+        guardrail_section = f"\n[TACTICAL COMPILER GUARDRAIL]:\n{guardrail}\n" if guardrail else ""
+        adv_section = f"\n[SUPERVISOR ADVERSARIAL ALERT]:\n{adv_warning}\n" if adv_warning else ""
+
         prompt = (
             f"Target Function: {fn_name}\n"
             f"Virtual Address: {addr}\n"
             f"Size: {size} bytes\n"
             f"Signature: {sig}\n"
+            f"{adv_section}"
+            f"{seed_section}"
+            f"{guardrail_section}"
             f"{hint_text}"
             f"{fb_text}\n"
             f"x86 Disassembly from Borderlands2.exe:\n"
