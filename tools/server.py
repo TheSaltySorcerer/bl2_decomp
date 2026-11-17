@@ -166,14 +166,14 @@ def get_function_disassembly(addr_hex: str, size: int) -> list:
         return []
 
 
-def extract_obj_code(obj_path: Path) -> bytes:
-    """Extracts raw compiled machine code bytes from MSVC COFF .obj file."""
+def extract_obj_code_and_relocs(obj_path: Path) -> tuple[bytes, list[tuple[int, int, int]]]:
+    """Extracts raw compiled machine code bytes and relocation entries from MSVC COFF .obj file."""
     if not obj_path.exists():
-        return b""
+        return b"", []
     with open(obj_path, "rb") as f:
         data = f.read()
     if len(data) < 20:
-        return b""
+        return b"", []
     num_sec = struct.unpack("<H", data[2:4])[0]
     for i in range(num_sec):
         hdr = 20 + i * 40
@@ -181,8 +181,21 @@ def extract_obj_code(obj_path: Path) -> bytes:
         if name in (".text", ".text$mn"):
             size = struct.unpack("<I", data[hdr+16:hdr+20])[0]
             ptr = struct.unpack("<I", data[hdr+20:hdr+24])[0]
-            return data[ptr:ptr+size]
-    return b""
+            ptr_relocs = struct.unpack("<I", data[hdr+24:hdr+28])[0]
+            num_relocs = struct.unpack("<H", data[hdr+32:hdr+34])[0]
+            code = data[ptr:ptr+size]
+            relocs = []
+            for r in range(num_relocs):
+                r_offset = ptr_relocs + r * 10
+                va, sym_idx, r_type = struct.unpack("<IIH", data[r_offset:r_offset+10])
+                relocs.append((va, r_type, sym_idx))
+            return code, relocs
+    return b"", []
+
+
+def extract_obj_code(obj_path: Path) -> bytes:
+    code, _ = extract_obj_code_and_relocs(obj_path)
+    return code
 
 
 def test_compile_match(unit_name: str, fn_addr: str, fn_size: int, candidate_code: str) -> tuple[bool, float, str]:
@@ -223,12 +236,23 @@ def test_compile_match(unit_name: str, fn_addr: str, fn_size: int, candidate_cod
         f.seek(offset)
         target_bytes = f.read(fn_size)
 
-    compiled_code = extract_obj_code(test_obj)
+    compiled_code, relocs = extract_obj_code_and_relocs(test_obj)
     if not compiled_code:
         return False, 0.0, "Could not extract machine code from compiled object file."
 
     if compiled_code == target_bytes:
         return True, 100.0, "EXACT 100% BYTE MATCH!"
+
+    # Relocation-masked comparison for unlinked object files
+    if len(compiled_code) == len(target_bytes) and relocs:
+        masked_code = bytearray(compiled_code)
+        masked_target = bytearray(target_bytes)
+        for r_va, r_type, _ in relocs:
+            if r_type in (0x0014, 0x0006):  # REL32 (calls/jmps) or DIR32 (symbol pointers)
+                masked_code[r_va:r_va+4] = b"\x00\x00\x00\x00"
+                masked_target[r_va:r_va+4] = b"\x00\x00\x00\x00"
+        if masked_code == masked_target:
+            return True, 100.0, f"EXACT 100% BYTE MATCH (with {len(relocs)} resolved relocations)!"
 
     common_len = min(len(compiled_code), len(target_bytes))
     matching_bytes = sum(1 for a, b in zip(compiled_code[:common_len], target_bytes[:common_len]) if a == b)

@@ -157,28 +157,28 @@
           "name": "WillowCombatLogic::Sub_00701300",
           "size": 266,
           "matched": false,
-          "signature": "void __cdecl Sub_00701300()"
+          "signature": "void __stdcall WillowCombatLogic::Sub_00701300(void* a1, void* a2)"
         },
         {
           "address": "0x00701AF0",
           "name": "WillowCombatLogic::Sub_00701AF0",
           "size": 134,
           "matched": false,
-          "signature": "void __cdecl Sub_00701AF0()"
+          "signature": "void __cdecl WillowCombatLogic::Sub_00701AF0(void* a1)"
         },
         {
           "address": "0x00701BB0",
           "name": "WillowCombatLogic::Sub_00701BB0",
           "size": 314,
           "matched": false,
-          "signature": "void __cdecl Sub_00701BB0()"
+          "signature": "void __stdcall WillowCombatLogic::Sub_00701BB0(void* a1)"
         },
         {
           "address": "0x00702030",
           "name": "WillowCombatLogic::Sub_00702030",
           "size": 36,
           "matched": false,
-          "signature": "void __stdcall Sub_00702030(void* a1, void* a2)",
+          "signature": "void __stdcall WillowCombatLogic::Sub_00702030(void* a1, void* a2)",
           "hints": "Takes two arguments (void* a1, void* a2). Calls reinterpret_cast<void(__cdecl*)(void*, void*)>(0x6fb980)(a1, a2); then if (a1) { *reinterpret_cast<DWORD*>((BYTE*)a1 + 0x448) |= 0x40000; }"
         },
         {
@@ -186,742 +186,742 @@
           "name": "WillowCombatLogic::Sub_007024C0",
           "size": 138,
           "matched": false,
-          "signature": "void __cdecl Sub_007024C0()"
+          "signature": "void __stdcall WillowCombatLogic::Sub_007024C0(void* a1, void* a2)"
         },
         {
           "address": "0x00702550",
           "name": "WillowCombatLogic::Sub_00702550",
           "size": 184,
           "matched": false,
-          "signature": "void __cdecl Sub_00702550()"
+          "signature": "void __stdcall WillowCombatLogic::Sub_00702550(void* a1)"
         },
         {
           "address": "0x00702610",
           "name": "WillowCombatLogic::Sub_00702610",
           "size": 150,
           "matched": false,
-          "signature": "void __stdcall Sub_00702610(void* a1, void* a2)"
+          "signature": "void __stdcall WillowCombatLogic::Sub_00702610(void* a1, void* a2)"
         },
         {
           "address": "0x007026B0",
           "name": "WillowCombatLogic::Sub_007026B0",
           "size": 292,
           "matched": false,
-          "signature": "void __cdecl Sub_007026B0()"
+          "signature": "void __stdcall WillowCombatLogic::Sub_007026B0(void* a1, void* a2)"
         },
         {
           "address": "0x007027E0",
           "name": "WillowCombatLogic::Sub_007027E0",
           "size": 366,
           "matched": false,
-          "signature": "void __cdecl Sub_007027E0()"
+          "signature": "void __stdcall WillowCombatLogic::Sub_007027E0(void* a1)"
         },
         {
           "address": "0x00702C70",
           "name": "WillowCombatLogic::Sub_00702C70",
           "size": 428,
           "matched": false,
-          "signature": "void __cdecl Sub_00702C70()"
+          "signature": "void __stdcall WillowCombatLogic::Sub_00702C70(void* a1, void* a2)"
         },
         {
           "address": "0x00702E20",
           "name": "WillowCombatLogic::Sub_00702E20",
           "size": 269,
           "matched": false,
-          "signature": "void __cdecl Sub_00702E20()"
+          "signature": "void __cdecl WillowCombatLogic::Sub_00702E20(void* a1, void* a2, void* a3)"
         },
         {
           "address": "0x00702F30",
           "name": "WillowCombatLogic::Sub_00702F30",
           "size": 131,
           "matched": false,
-          "signature": "void __stdcall Sub_00702F30(void* a1, void* a2)"
+          "signature": "void __stdcall WillowCombatLogic::Sub_00702F30(void* a1, void* a2)"
         },
         {
           "address": "0x00702FC0",
           "name": "WillowCombatLogic::Sub_00702FC0",
           "size": 185,
           "matched": false,
-          "signature": "void __stdcall Sub_00702FC0(void* a1, void* a2)"
+          "signature": "void __stdcall WillowCombatLogic::Sub_00702FC0(void* a1, void* a2)"
         },
         {
           "address": "0x00703080",
           "name": "WillowCombatLogic::Sub_00703080",
           "size": 191,
           "matched": false,
-          "signature": "void __cdecl Sub_00703080()"
+          "signature": "void __cdecl WillowCombatLogic::Sub_00703080(void* a1, void* a2, void* a3)"
         },
         {
           "address": "0x00703140",
           "name": "WillowCombatLogic::Sub_00703140",
           "size": 158,
           "matched": false,
-          "signature": "void __cdecl Sub_00703140()"
+          "signature": "void __stdcall WillowCombatLogic::Sub_00703140(void* a1)"
         },
         {
           "address": "0x007031E0",
           "name": "WillowCombatLogic::Sub_007031E0",
           "size": 226,
           "matched": false,
-          "signature": "void __cdecl Sub_007031E0()"
+          "signature": "void __stdcall WillowCombatLogic::Sub_007031E0(void* a1)"
         },
         {
           "address": "0x00703890",
           "name": "WillowCombatLogic::Sub_00703890",
           "size": 216,
           "matched": false,
-          "signature": "void __cdecl Sub_00703890()"
+          "signature": "void __stdcall WillowCombatLogic::Sub_00703890(void* a1)"
         },
         {
           "address": "0x00703970",
           "name": "WillowCombatLogic::Sub_00703970",
           "size": 138,
           "matched": false,
-          "signature": "void __cdecl Sub_00703970()"
+          "signature": "void __stdcall WillowCombatLogic::Sub_00703970(void* a1)"
         },
         {
           "address": "0x00703A00",
           "name": "WillowCombatLogic::Sub_00703A00",
           "size": 268,
           "matched": false,
-          "signature": "void __cdecl Sub_00703A00()"
+          "signature": "void __stdcall WillowCombatLogic::Sub_00703A00(void* a1)"
         },
         {
           "address": "0x00703B10",
           "name": "WillowCombatLogic::Sub_00703B10",
           "size": 317,
           "matched": false,
-          "signature": "void __cdecl Sub_00703B10()"
+          "signature": "void __cdecl WillowCombatLogic::Sub_00703B10(void* a1, void* a2, void* a3, void* a4, void* a5, void* a6, void* a7)"
         },
         {
           "address": "0x00703C50",
           "name": "WillowCombatLogic::Sub_00703C50",
           "size": 124,
           "matched": false,
-          "signature": "void __cdecl Sub_00703C50()"
+          "signature": "void __cdecl WillowCombatLogic::Sub_00703C50(void* a1, void* a2, void* a3, void* a4, void* a5, void* a6, void* a7)"
         },
         {
           "address": "0x00703CD0",
           "name": "WillowCombatLogic::Sub_00703CD0",
           "size": 311,
           "matched": false,
-          "signature": "void Sub_00703CD0()"
+          "signature": "void __thiscall WillowCombatLogic::Sub_00703CD0()"
         },
         {
           "address": "0x00704300",
           "name": "WillowCombatLogic::Sub_00704300",
           "size": 242,
           "matched": false,
-          "signature": "void __cdecl Sub_00704300()"
+          "signature": "void __stdcall WillowCombatLogic::Sub_00704300(void* a1)"
         },
         {
           "address": "0x00704470",
           "name": "WillowCombatLogic::Sub_00704470",
           "size": 24,
-          "matched": false,
-          "signature": "void __cdecl Sub_00704470()"
+          "matched": true,
+          "signature": "void __cdecl WillowCombatLogic::Sub_00704470()"
         },
         {
           "address": "0x00704490",
           "name": "WillowCombatLogic::Sub_00704490",
           "size": 24,
-          "matched": false,
-          "signature": "void __cdecl Sub_00704490()"
+          "matched": true,
+          "signature": "void __cdecl WillowCombatLogic::Sub_00704490()"
         },
         {
           "address": "0x007044B0",
           "name": "WillowCombatLogic::Sub_007044B0",
           "size": 138,
           "matched": false,
-          "signature": "void __cdecl Sub_007044B0()"
+          "signature": "void __cdecl WillowCombatLogic::Sub_007044B0(void* a1, void* a2, void* a3)"
         },
         {
           "address": "0x00704540",
           "name": "WillowCombatLogic::Sub_00704540",
           "size": 266,
           "matched": false,
-          "signature": "void Sub_00704540(void* a1)"
+          "signature": "void __thiscall WillowCombatLogic::Sub_00704540(void* a1)"
         },
         {
           "address": "0x00704690",
           "name": "WillowCombatLogic::Sub_00704690",
           "size": 153,
           "matched": false,
-          "signature": "void __cdecl Sub_00704690()"
+          "signature": "void __stdcall WillowCombatLogic::Sub_00704690(void* a1)"
         },
         {
           "address": "0x00704730",
           "name": "WillowCombatLogic::Sub_00704730",
           "size": 149,
           "matched": false,
-          "signature": "void __cdecl Sub_00704730()"
+          "signature": "void __stdcall WillowCombatLogic::Sub_00704730(void* a1, void* a2)"
         },
         {
           "address": "0x007048E0",
           "name": "WillowCombatLogic::Sub_007048E0",
           "size": 358,
           "matched": false,
-          "signature": "void __cdecl Sub_007048E0()"
+          "signature": "void __cdecl WillowCombatLogic::Sub_007048E0(void* a1, void* a2, void* a3, void* a4, void* a5, void* a6)"
         },
         {
           "address": "0x00603B90",
           "name": "Sub_00603B90",
           "size": 18,
-          "matched": false,
-          "signature": "void __cdecl Sub_00603B90()"
+          "matched": true,
+          "signature": "void __cdecl WillowCombatLogic::Sub_00603B90(void* a1)"
         },
         {
           "address": "0x00605B70",
           "name": "Sub_00605B70",
           "size": 18,
-          "matched": false,
-          "signature": "void __cdecl Sub_00605B70()"
+          "matched": true,
+          "signature": "void __cdecl WillowCombatLogic::Sub_00605B70(void* a1)"
         },
         {
           "address": "0x00607150",
           "name": "Sub_00607150",
           "size": 38,
           "matched": false,
-          "signature": "void __stdcall Sub_00607150(void* a1)"
+          "signature": "void __stdcall WillowCombatLogic::Sub_00607150(void* a1)"
         },
         {
           "address": "0x006097B0",
           "name": "Sub_006097B0",
           "size": 13,
           "matched": true,
-          "signature": "void __stdcall Sub_006097B0(void* a1)"
+          "signature": "void __stdcall WillowCombatLogic::Sub_006097B0(void* a1)"
         },
         {
           "address": "0x00611610",
           "name": "Sub_00611610",
           "size": 27,
-          "matched": false,
-          "signature": "void __cdecl Sub_00611610()"
+          "matched": true,
+          "signature": "void __cdecl WillowCombatLogic::Sub_00611610(void* a1)"
         },
         {
           "address": "0x00611630",
           "name": "Sub_00611630",
           "size": 27,
-          "matched": false,
-          "signature": "void __cdecl Sub_00611630()"
+          "matched": true,
+          "signature": "void __cdecl WillowCombatLogic::Sub_00611630(void* a1)"
         },
         {
           "address": "0x00611650",
           "name": "Sub_00611650",
           "size": 27,
-          "matched": false,
-          "signature": "void __cdecl Sub_00611650()"
+          "matched": true,
+          "signature": "void __cdecl WillowCombatLogic::Sub_00611650(void* a1)"
         },
         {
           "address": "0x00611670",
           "name": "Sub_00611670",
           "size": 27,
-          "matched": false,
-          "signature": "void __cdecl Sub_00611670()"
+          "matched": true,
+          "signature": "void __cdecl WillowCombatLogic::Sub_00611670(void* a1)"
         },
         {
           "address": "0x00611690",
           "name": "Sub_00611690",
           "size": 27,
-          "matched": false,
-          "signature": "void __cdecl Sub_00611690()"
+          "matched": true,
+          "signature": "void __cdecl WillowCombatLogic::Sub_00611690(void* a1)"
         },
         {
           "address": "0x006116B0",
           "name": "Sub_006116B0",
           "size": 27,
-          "matched": false,
-          "signature": "void __cdecl Sub_006116B0()"
+          "matched": true,
+          "signature": "void __cdecl WillowCombatLogic::Sub_006116B0(void* a1)"
         },
         {
           "address": "0x006116D0",
           "name": "Sub_006116D0",
           "size": 27,
-          "matched": false,
-          "signature": "void __cdecl Sub_006116D0()"
+          "matched": true,
+          "signature": "void __cdecl WillowCombatLogic::Sub_006116D0(void* a1)"
         },
         {
           "address": "0x006116F0",
           "name": "Sub_006116F0",
           "size": 27,
-          "matched": false,
-          "signature": "void __cdecl Sub_006116F0()"
+          "matched": true,
+          "signature": "void __cdecl WillowCombatLogic::Sub_006116F0(void* a1)"
         },
         {
           "address": "0x00611710",
           "name": "Sub_00611710",
           "size": 27,
-          "matched": false,
-          "signature": "void __cdecl Sub_00611710()"
+          "matched": true,
+          "signature": "void __cdecl WillowCombatLogic::Sub_00611710(void* a1)"
         },
         {
           "address": "0x00611730",
           "name": "Sub_00611730",
           "size": 27,
-          "matched": false,
-          "signature": "void __cdecl Sub_00611730()"
+          "matched": true,
+          "signature": "void __cdecl WillowCombatLogic::Sub_00611730(void* a1)"
         },
         {
           "address": "0x00611750",
           "name": "Sub_00611750",
           "size": 27,
-          "matched": false,
-          "signature": "void __cdecl Sub_00611750()"
+          "matched": true,
+          "signature": "void __cdecl WillowCombatLogic::Sub_00611750(void* a1)"
         },
         {
           "address": "0x00611770",
           "name": "Sub_00611770",
           "size": 27,
-          "matched": false,
-          "signature": "void __cdecl Sub_00611770()"
+          "matched": true,
+          "signature": "void __cdecl WillowCombatLogic::Sub_00611770(void* a1)"
         },
         {
           "address": "0x00611790",
           "name": "Sub_00611790",
           "size": 27,
-          "matched": false,
-          "signature": "void __cdecl Sub_00611790()"
+          "matched": true,
+          "signature": "void __cdecl WillowCombatLogic::Sub_00611790(void* a1)"
         },
         {
           "address": "0x006117B0",
           "name": "Sub_006117B0",
           "size": 27,
-          "matched": false,
-          "signature": "void __cdecl Sub_006117B0()"
+          "matched": true,
+          "signature": "void __cdecl WillowCombatLogic::Sub_006117B0(void* a1)"
         },
         {
           "address": "0x006117D0",
           "name": "Sub_006117D0",
           "size": 27,
-          "matched": false,
-          "signature": "void __cdecl Sub_006117D0()"
+          "matched": true,
+          "signature": "void __cdecl WillowCombatLogic::Sub_006117D0(void* a1)"
         },
         {
           "address": "0x006117F0",
           "name": "Sub_006117F0",
           "size": 27,
           "matched": false,
-          "signature": "void __cdecl Sub_006117F0()"
+          "signature": "void __cdecl WillowCombatLogic::Sub_006117F0(void* a1)"
         },
         {
           "address": "0x00611810",
           "name": "Sub_00611810",
           "size": 27,
           "matched": false,
-          "signature": "void __cdecl Sub_00611810()"
+          "signature": "void __cdecl WillowCombatLogic::Sub_00611810(void* a1)"
         },
         {
           "address": "0x00611830",
           "name": "Sub_00611830",
           "size": 27,
           "matched": false,
-          "signature": "void __cdecl Sub_00611830()"
+          "signature": "void __cdecl WillowCombatLogic::Sub_00611830(void* a1)"
         },
         {
           "address": "0x00611850",
           "name": "Sub_00611850",
           "size": 27,
           "matched": false,
-          "signature": "void __cdecl Sub_00611850()"
+          "signature": "void __cdecl WillowCombatLogic::Sub_00611850(void* a1)"
         },
         {
           "address": "0x00611870",
           "name": "Sub_00611870",
           "size": 27,
           "matched": false,
-          "signature": "void __cdecl Sub_00611870()"
+          "signature": "void __cdecl WillowCombatLogic::Sub_00611870(void* a1)"
         },
         {
           "address": "0x00611890",
           "name": "Sub_00611890",
           "size": 27,
           "matched": false,
-          "signature": "void __cdecl Sub_00611890()"
+          "signature": "void __cdecl WillowCombatLogic::Sub_00611890(void* a1)"
         },
         {
           "address": "0x006118B0",
           "name": "Sub_006118B0",
           "size": 27,
           "matched": false,
-          "signature": "void __cdecl Sub_006118B0()"
+          "signature": "void __cdecl WillowCombatLogic::Sub_006118B0(void* a1)"
         },
         {
           "address": "0x006118D0",
           "name": "Sub_006118D0",
           "size": 27,
           "matched": false,
-          "signature": "void __cdecl Sub_006118D0()"
+          "signature": "void __cdecl WillowCombatLogic::Sub_006118D0(void* a1)"
         },
         {
           "address": "0x006118F0",
           "name": "Sub_006118F0",
           "size": 27,
           "matched": false,
-          "signature": "void __cdecl Sub_006118F0()"
+          "signature": "void __cdecl WillowCombatLogic::Sub_006118F0(void* a1)"
         },
         {
           "address": "0x00611910",
           "name": "Sub_00611910",
           "size": 27,
           "matched": false,
-          "signature": "void __cdecl Sub_00611910()"
+          "signature": "void __cdecl WillowCombatLogic::Sub_00611910(void* a1)"
         },
         {
           "address": "0x00611930",
           "name": "Sub_00611930",
           "size": 27,
           "matched": false,
-          "signature": "void __cdecl Sub_00611930()"
+          "signature": "void __cdecl WillowCombatLogic::Sub_00611930(void* a1)"
         },
         {
           "address": "0x00611950",
           "name": "Sub_00611950",
           "size": 27,
           "matched": false,
-          "signature": "void __cdecl Sub_00611950()"
+          "signature": "void __cdecl WillowCombatLogic::Sub_00611950(void* a1)"
         },
         {
           "address": "0x00611970",
           "name": "Sub_00611970",
           "size": 27,
           "matched": false,
-          "signature": "void __cdecl Sub_00611970()"
+          "signature": "void __cdecl WillowCombatLogic::Sub_00611970(void* a1)"
         },
         {
           "address": "0x00611990",
           "name": "Sub_00611990",
           "size": 27,
           "matched": false,
-          "signature": "void __cdecl Sub_00611990()"
+          "signature": "void __cdecl WillowCombatLogic::Sub_00611990(void* a1)"
         },
         {
           "address": "0x006119B0",
           "name": "Sub_006119B0",
           "size": 27,
           "matched": false,
-          "signature": "void __cdecl Sub_006119B0()"
+          "signature": "void __cdecl WillowCombatLogic::Sub_006119B0(void* a1)"
         },
         {
           "address": "0x006119D0",
           "name": "Sub_006119D0",
           "size": 27,
           "matched": false,
-          "signature": "void __cdecl Sub_006119D0()"
+          "signature": "void __cdecl WillowCombatLogic::Sub_006119D0(void* a1)"
         },
         {
           "address": "0x006119F0",
           "name": "Sub_006119F0",
           "size": 27,
           "matched": false,
-          "signature": "void __cdecl Sub_006119F0()"
+          "signature": "void __cdecl WillowCombatLogic::Sub_006119F0(void* a1)"
         },
         {
           "address": "0x00611A10",
           "name": "Sub_00611A10",
           "size": 27,
           "matched": false,
-          "signature": "void __cdecl Sub_00611A10()"
+          "signature": "void __cdecl WillowCombatLogic::Sub_00611A10(void* a1)"
         },
         {
           "address": "0x00611A30",
           "name": "Sub_00611A30",
           "size": 27,
           "matched": false,
-          "signature": "void __cdecl Sub_00611A30()"
+          "signature": "void __cdecl WillowCombatLogic::Sub_00611A30(void* a1)"
         },
         {
           "address": "0x00611A50",
           "name": "Sub_00611A50",
           "size": 27,
           "matched": false,
-          "signature": "void __cdecl Sub_00611A50()"
+          "signature": "void __cdecl WillowCombatLogic::Sub_00611A50(void* a1)"
         },
         {
           "address": "0x00611A70",
           "name": "Sub_00611A70",
           "size": 27,
           "matched": false,
-          "signature": "void __cdecl Sub_00611A70()"
+          "signature": "void __cdecl WillowCombatLogic::Sub_00611A70(void* a1)"
         },
         {
           "address": "0x00611A90",
           "name": "Sub_00611A90",
           "size": 27,
           "matched": false,
-          "signature": "void __cdecl Sub_00611A90()"
+          "signature": "void __cdecl WillowCombatLogic::Sub_00611A90(void* a1)"
         },
         {
           "address": "0x00611AB0",
           "name": "Sub_00611AB0",
           "size": 27,
           "matched": false,
-          "signature": "void __cdecl Sub_00611AB0()"
+          "signature": "void __cdecl WillowCombatLogic::Sub_00611AB0(void* a1)"
         },
         {
           "address": "0x00611AD0",
           "name": "Sub_00611AD0",
           "size": 27,
           "matched": false,
-          "signature": "void __cdecl Sub_00611AD0()"
+          "signature": "void __cdecl WillowCombatLogic::Sub_00611AD0(void* a1)"
         },
         {
           "address": "0x00611AF0",
           "name": "Sub_00611AF0",
           "size": 27,
           "matched": false,
-          "signature": "void __cdecl Sub_00611AF0()"
+          "signature": "void __cdecl WillowCombatLogic::Sub_00611AF0(void* a1)"
         },
         {
           "address": "0x00611B10",
           "name": "Sub_00611B10",
           "size": 27,
           "matched": false,
-          "signature": "void __cdecl Sub_00611B10()"
+          "signature": "void __cdecl WillowCombatLogic::Sub_00611B10(void* a1)"
         },
         {
           "address": "0x00611B30",
           "name": "Sub_00611B30",
           "size": 27,
           "matched": false,
-          "signature": "void __cdecl Sub_00611B30()"
+          "signature": "void __cdecl WillowCombatLogic::Sub_00611B30(void* a1)"
         },
         {
           "address": "0x00611B50",
           "name": "Sub_00611B50",
           "size": 27,
           "matched": false,
-          "signature": "void __cdecl Sub_00611B50()"
+          "signature": "void __cdecl WillowCombatLogic::Sub_00611B50(void* a1)"
         },
         {
           "address": "0x00611B70",
           "name": "Sub_00611B70",
           "size": 27,
           "matched": false,
-          "signature": "void __cdecl Sub_00611B70()"
+          "signature": "void __cdecl WillowCombatLogic::Sub_00611B70(void* a1)"
         },
         {
           "address": "0x00611B90",
           "name": "Sub_00611B90",
           "size": 27,
           "matched": false,
-          "signature": "void __cdecl Sub_00611B90()"
+          "signature": "void __cdecl WillowCombatLogic::Sub_00611B90(void* a1)"
         },
         {
           "address": "0x00611BB0",
           "name": "Sub_00611BB0",
           "size": 27,
           "matched": false,
-          "signature": "void __cdecl Sub_00611BB0()"
+          "signature": "void __cdecl WillowCombatLogic::Sub_00611BB0(void* a1)"
         },
         {
           "address": "0x00611BD0",
           "name": "Sub_00611BD0",
           "size": 27,
           "matched": false,
-          "signature": "void __cdecl Sub_00611BD0()"
+          "signature": "void __cdecl WillowCombatLogic::Sub_00611BD0(void* a1)"
         },
         {
           "address": "0x00611BF0",
           "name": "Sub_00611BF0",
           "size": 27,
           "matched": false,
-          "signature": "void __cdecl Sub_00611BF0()"
+          "signature": "void __cdecl WillowCombatLogic::Sub_00611BF0(void* a1)"
         },
         {
           "address": "0x00611C10",
           "name": "Sub_00611C10",
           "size": 27,
           "matched": false,
-          "signature": "void __cdecl Sub_00611C10()"
+          "signature": "void __cdecl WillowCombatLogic::Sub_00611C10(void* a1)"
         },
         {
           "address": "0x00611C30",
           "name": "Sub_00611C30",
           "size": 27,
           "matched": false,
-          "signature": "void __cdecl Sub_00611C30()"
+          "signature": "void __cdecl WillowCombatLogic::Sub_00611C30(void* a1)"
         },
         {
           "address": "0x00611C50",
           "name": "Sub_00611C50",
           "size": 27,
           "matched": false,
-          "signature": "void __cdecl Sub_00611C50()"
+          "signature": "void __cdecl WillowCombatLogic::Sub_00611C50(void* a1)"
         },
         {
           "address": "0x00611C70",
           "name": "Sub_00611C70",
           "size": 27,
           "matched": false,
-          "signature": "void __cdecl Sub_00611C70()"
+          "signature": "void __cdecl WillowCombatLogic::Sub_00611C70(void* a1)"
         },
         {
           "address": "0x00611C90",
           "name": "Sub_00611C90",
           "size": 27,
           "matched": false,
-          "signature": "void __cdecl Sub_00611C90()"
+          "signature": "void __cdecl WillowCombatLogic::Sub_00611C90(void* a1)"
         },
         {
           "address": "0x00611CB0",
           "name": "Sub_00611CB0",
           "size": 27,
           "matched": false,
-          "signature": "void __cdecl Sub_00611CB0()"
+          "signature": "void __cdecl WillowCombatLogic::Sub_00611CB0(void* a1)"
         },
         {
           "address": "0x00611CD0",
           "name": "Sub_00611CD0",
           "size": 27,
           "matched": false,
-          "signature": "void __cdecl Sub_00611CD0()"
+          "signature": "void __cdecl WillowCombatLogic::Sub_00611CD0(void* a1)"
         },
         {
           "address": "0x00611CF0",
           "name": "Sub_00611CF0",
           "size": 27,
           "matched": false,
-          "signature": "void __cdecl Sub_00611CF0()"
+          "signature": "void __cdecl WillowCombatLogic::Sub_00611CF0(void* a1)"
         },
         {
           "address": "0x00611D10",
           "name": "Sub_00611D10",
           "size": 27,
           "matched": false,
-          "signature": "void __cdecl Sub_00611D10()"
+          "signature": "void __cdecl WillowCombatLogic::Sub_00611D10(void* a1)"
         },
         {
           "address": "0x00611D30",
           "name": "Sub_00611D30",
           "size": 27,
           "matched": false,
-          "signature": "void __cdecl Sub_00611D30()"
+          "signature": "void __cdecl WillowCombatLogic::Sub_00611D30(void* a1)"
         },
         {
           "address": "0x00611D50",
           "name": "Sub_00611D50",
           "size": 27,
           "matched": false,
-          "signature": "void __cdecl Sub_00611D50()"
+          "signature": "void __cdecl WillowCombatLogic::Sub_00611D50(void* a1)"
         },
         {
           "address": "0x00611D70",
           "name": "Sub_00611D70",
           "size": 27,
           "matched": false,
-          "signature": "void __cdecl Sub_00611D70()"
+          "signature": "void __cdecl WillowCombatLogic::Sub_00611D70(void* a1)"
         },
         {
           "address": "0x00611D90",
           "name": "Sub_00611D90",
           "size": 27,
           "matched": false,
-          "signature": "void __cdecl Sub_00611D90()"
+          "signature": "void __cdecl WillowCombatLogic::Sub_00611D90(void* a1)"
         },
         {
           "address": "0x00611DB0",
           "name": "Sub_00611DB0",
           "size": 27,
           "matched": false,
-          "signature": "void __cdecl Sub_00611DB0()"
+          "signature": "void __cdecl WillowCombatLogic::Sub_00611DB0(void* a1)"
         },
         {
           "address": "0x00611DD0",
           "name": "Sub_00611DD0",
           "size": 27,
           "matched": false,
-          "signature": "void __cdecl Sub_00611DD0()"
+          "signature": "void __cdecl WillowCombatLogic::Sub_00611DD0(void* a1)"
         },
         {
           "address": "0x00611DF0",
           "name": "Sub_00611DF0",
           "size": 27,
           "matched": false,
-          "signature": "void __cdecl Sub_00611DF0()"
+          "signature": "void __cdecl WillowCombatLogic::Sub_00611DF0(void* a1)"
         },
         {
           "address": "0x00611E10",
           "name": "Sub_00611E10",
           "size": 27,
           "matched": false,
-          "signature": "void __cdecl Sub_00611E10()"
+          "signature": "void __cdecl WillowCombatLogic::Sub_00611E10(void* a1)"
         },
         {
           "address": "0x00611E30",
           "name": "Sub_00611E30",
           "size": 27,
           "matched": false,
-          "signature": "void __cdecl Sub_00611E30()"
+          "signature": "void __cdecl WillowCombatLogic::Sub_00611E30(void* a1)"
         },
         {
           "address": "0x00611E50",
           "name": "Sub_00611E50",
           "size": 27,
           "matched": false,
-          "signature": "void __cdecl Sub_00611E50()"
+          "signature": "void __cdecl WillowCombatLogic::Sub_00611E50(void* a1)"
         },
         {
           "address": "0x00611E70",
           "name": "Sub_00611E70",
           "size": 27,
           "matched": false,
-          "signature": "void __cdecl Sub_00611E70()"
+          "signature": "void __cdecl WillowCombatLogic::Sub_00611E70(void* a1)"
         },
         {
           "address": "0x00611E90",
           "name": "Sub_00611E90",
           "size": 27,
           "matched": false,
-          "signature": "void __cdecl Sub_00611E90()"
+          "signature": "void __cdecl WillowCombatLogic::Sub_00611E90(void* a1)"
         },
         {
           "address": "0x00611EB0",
           "name": "Sub_00611EB0",
           "size": 27,
           "matched": false,
-          "signature": "void __cdecl Sub_00611EB0()"
+          "signature": "void __cdecl WillowCombatLogic::Sub_00611EB0(void* a1)"
         },
         {
           "address": "0x00611ED0",
           "name": "Sub_00611ED0",
           "size": 27,
           "matched": false,
-          "signature": "void __cdecl Sub_00611ED0()"
+          "signature": "void __cdecl WillowCombatLogic::Sub_00611ED0(void* a1)"
         },
         {
           "address": "0x00611EF0",
           "name": "Sub_00611EF0",
           "size": 27,
           "matched": false,
-          "signature": "void __cdecl Sub_00611EF0()"
+          "signature": "void __cdecl WillowCombatLogic::Sub_00611EF0(void* a1)"
         },
         {
           "address": "0x00611F10",
           "name": "Sub_00611F10",
           "size": 27,
           "matched": false,
-          "signature": "void __cdecl Sub_00611F10()"
+          "signature": "void __cdecl WillowCombatLogic::Sub_00611F10(void* a1)"
         },
         {
           "address": "0x00611F30",
           "name": "Sub_00611F30",
           "size": 27,
           "matched": false,
-          "signature": "void __cdecl Sub_00611F30()"
+          "signature": "void __cdecl WillowCombatLogic::Sub_00611F30(void* a1)"
         },
         {
           "address": "0x00611F50",
           "name": "Sub_00611F50",
           "size": 27,
           "matched": false,
-          "signature": "void __cdecl Sub_00611F50()"
+          "signature": "void __cdecl WillowCombatLogic::Sub_00611F50(void* a1)"
         },
         {
           "address": "0x00611F70",
           "name": "Sub_00611F70",
           "size": 27,
           "matched": false,
-          "signature": "void __cdecl Sub_00611F70()"
+          "signature": "void __cdecl WillowCombatLogic::Sub_00611F70(void* a1)"
         }
       ]
     }
