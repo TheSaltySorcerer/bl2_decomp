@@ -60,3 +60,7 @@ struct FBL2GlobalDispatcher {
 extern FBL2GlobalDispatcher* g_GlobalObj_19f29a4;
 
 #endif // BL2_DECOMP_COMMON_H
+
+void __stdcall Sub_006fb980(void* a1, void* a2);
+
+struct FBaseHelper_004ac0c0 { void Sub_004ac0c0(); };
