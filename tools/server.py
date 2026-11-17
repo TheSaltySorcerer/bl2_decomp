@@ -48,6 +48,7 @@ FAILURES_BY_ADDR = {}  # address -> {"count": int, "errors": list, "last_code": 
 FUNCTION_TIERS = {}  # address -> int (1=1.5B, 2=7B, 3=14B, 4=Antigravity)
 ESCALATIONS = {}  # address -> dict
 REGISTERED_WORKERS = {}  # worker_id -> dict(worker_id, model, tier, tok_s, time_per_attempt, attempt_budget_5m, hardware, last_seen, ...)
+CLUSTER_PAUSED = False  # Global gaming / user pause toggle
 
 # 5 minutes of compute per model tier on the high end of complete attempts:
 # Tier 1 (1.5B @ 114 tok/s, ~1.1s/attempt): 250 attempts (~4.6 min)
@@ -284,8 +285,20 @@ class ClusterRequestHandler(BaseHTTPRequestHandler):
         self.wfile.write(body)
 
     def do_GET(self):
+        global CLUSTER_PAUSED
         now = time.time()
+        if self.path == "/pause":
+            CLUSTER_PAUSED = True
+            print(f"\n{COLOR_YELLOW}[Cluster Notice]{COLOR_RESET} Cluster compute PAUSED by user.")
+            return self._send_json(200, {"status": "paused", "cluster_paused": True})
+        elif self.path == "/resume":
+            CLUSTER_PAUSED = False
+            print(f"\n{COLOR_GREEN}[Cluster Notice]{COLOR_RESET} Cluster compute RESUMED by user.")
+            return self._send_json(200, {"status": "resumed", "cluster_paused": False})
+
         if self.path.startswith("/task"):
+            if CLUSTER_PAUSED:
+                return self._send_json(200, {"status": "paused", "message": "Cluster compute is paused by user."})
             from urllib.parse import urlparse, parse_qs
             parsed = urlparse(self.path)
             params = parse_qs(parsed.query)

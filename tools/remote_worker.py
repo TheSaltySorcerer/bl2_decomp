@@ -15,7 +15,14 @@ import time
 import json
 import socket
 import argparse
+from pathlib import Path
 from urllib import request, error
+
+try:
+    import ctypes
+    import ctypes.wintypes
+except ImportError:
+    ctypes = None
 
 if hasattr(sys.stdout, 'reconfigure'):
     sys.stdout.reconfigure(line_buffering=True)
@@ -149,6 +156,79 @@ def register_worker_with_master(server_url: str, worker_id: str, model: str, tok
         return {}
 
 
+COMMON_GAME_EXES = {
+    "borderlands2.exe", "borderlands3.exe", "borderlands4.exe", "wonderlands.exe",
+    "r5apex.exe", "cs2.exe", "dota2.exe", "overwatch.exe", "cod.exe",
+    "warframe.x64.exe", "cyberpunk2077.exe", "starfield.exe", "eldenring.exe",
+    "helldivers2.exe", "valorant.exe", "destiny2.exe", "gtav.exe", "rdr2.exe",
+    "fallout4.exe", "skyrimse.exe", "witcher3.exe"
+}
+
+
+def set_low_process_priority():
+    """Sets process priority to BELOW_NORMAL on Windows or nice(10) on Linux so games take precedence."""
+    try:
+        if sys.platform == "win32" and ctypes:
+            k32 = ctypes.windll.kernel32
+            k32.GetCurrentProcess.restype = ctypes.c_void_p
+            k32.SetPriorityClass.argtypes = [ctypes.c_void_p, ctypes.c_uint32]
+            k32.SetPriorityClass.restype = ctypes.c_bool
+            # 0x00004000 = BELOW_NORMAL_PRIORITY_CLASS
+            k32.SetPriorityClass(k32.GetCurrentProcess(), 0x00004000)
+        elif hasattr(os, "nice"):
+            os.nice(10)
+    except Exception:
+        pass
+
+
+def detect_active_game() -> str:
+    """Scans running processes for active games or heavy 3D shipping binaries."""
+    if sys.platform != "win32" or not ctypes:
+        return ""
+    try:
+        TH32CS_SNAPPROCESS = 0x00000002
+        k32 = ctypes.windll.kernel32
+        class PROCESSENTRY32(ctypes.Structure):
+            _fields_ = [
+                ('dwSize', ctypes.wintypes.DWORD),
+                ('cntUsage', ctypes.wintypes.DWORD),
+                ('th32ProcessID', ctypes.wintypes.DWORD),
+                ('th32DefaultHeapID', ctypes.c_size_t),
+                ('th32ModuleID', ctypes.wintypes.DWORD),
+                ('cntThreads', ctypes.wintypes.DWORD),
+                ('th32ParentProcessID', ctypes.wintypes.DWORD),
+                ('pcPriClassBase', ctypes.c_long),
+                ('dwFlags', ctypes.wintypes.DWORD),
+                ('szExeFile', ctypes.c_char * 260)
+            ]
+        k32.CreateToolhelp32Snapshot.argtypes = [ctypes.wintypes.DWORD, ctypes.wintypes.DWORD]
+        k32.CreateToolhelp32Snapshot.restype = ctypes.c_void_p
+        snap = k32.CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0)
+        if not snap or snap == -1:
+            return ""
+        entry = PROCESSENTRY32()
+        entry.dwSize = ctypes.sizeof(PROCESSENTRY32)
+        success = k32.Process32First(snap, ctypes.byref(entry))
+        detected = ""
+        while success:
+            exe = entry.szExeFile.decode('ansi', errors='ignore').lower()
+            if exe in COMMON_GAME_EXES or (exe.endswith("-shipping.exe") and not exe.startswith("bl2_")) or (exe.startswith("game") and "gemini" not in exe):
+                detected = exe
+                break
+            success = k32.Process32Next(snap, ctypes.byref(entry))
+        k32.CloseHandle(snap)
+        return detected
+    except Exception:
+        return ""
+
+
+def is_paused_by_user() -> bool:
+    """Checks for explicit local pause flag file (~/.bl2_pause or M:\\bl2_decomp\\build\\PAUSE)."""
+    p1 = Path(os.environ.get("USERPROFILE", "")) / ".bl2_pause"
+    p2 = Path(r"M:\bl2_decomp\build\PAUSE")
+    return p1.exists() or p2.exists()
+
+
 def run_worker():
     parser = argparse.ArgumentParser(description="Remote Worker Node for bl2_decomp cluster.")
     parser.add_argument("--server", type=str, default="", help="Master server URL (leave empty for auto-discovery)")
@@ -158,6 +238,9 @@ def run_worker():
     parser.add_argument("--tier", type=str, default="", help="Worker tier override: '1', '2', '3'")
     parser.add_argument("--auto", action="store_true", help="Enable automatic discovery and self-calibration")
     args = parser.parse_args()
+
+    # Subordinate worker thread priority so OS prioritizes games and foreground tasks
+    set_low_process_priority()
 
     # Determine server URL
     server_url = args.server
@@ -205,6 +288,13 @@ def run_worker():
     print("=" * 66)
 
     while True:
+        # Gaming shield & user pause detection: yield immediately if game is active
+        active_game = detect_active_game()
+        if active_game or is_paused_by_user():
+            reason = f"Active game '{active_game}' detected" if active_game else "Pause flag active"
+            print(f"{COLOR_YELLOW}[Gaming Shield Active] {reason}. Yielding compute. Sleeping 15s...{COLOR_RESET}")
+            time.sleep(15)
+            continue
         try:
             req = request.Request(f"{server_url}/task?worker_id={worker_id}&tier={num_tier}")
             with request.urlopen(req, timeout=10) as resp:
