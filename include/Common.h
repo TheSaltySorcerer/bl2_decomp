@@ -53,6 +53,9 @@ typedef double    DOUBLE;
 
 // Global BL2 engine stubs
 void Init_004050f0();
-extern void* g_GlobalObj_19f29a4;
+struct FBL2GlobalDispatcher {
+    void** vtbl;
+};
+extern FBL2GlobalDispatcher* g_GlobalObj_19f29a4;
 
 #endif // BL2_DECOMP_COMMON_H
