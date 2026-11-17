@@ -9,13 +9,8 @@ int __stdcall WinMain(void* hInstance, void* hPrevInstance, char* lpCmdLine, int
     return 0;
 }
 
-// 0x004010C0 - WillowEngine initialization sequence
-DECOMP_FUNCTION("0x004010C0", 512)
-bool WillowEngineInit(const char* cmdLine)
+// 0x004010C0 - Runtime stub
+DECOMP_FUNCTION("0x004010C0", 5)
+void Sub_004010C0()
 {
-    if (!cmdLine)
-    {
-        return false;
-    }
-    return true;
 }
