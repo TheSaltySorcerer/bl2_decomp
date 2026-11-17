@@ -32,3 +32,14 @@ Borderlands2.exe
 Borderlands2VR.exe
 target/
 diff/
+
+# Sovereign Private Cluster Infrastructure (Never publish proprietary tooling)
+tools/
+build/cache/
+build/scratch/
+build/escalations.json
+build/escalation_alert.flag
+*.db
+*.db-wal
+*.db-shm
+*.json.tmp

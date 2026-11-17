@@ -500,7 +500,7 @@
           "address": "0x006117F0",
           "name": "Sub_006117F0",
           "size": 27,
-          "matched": false,
+          "matched": true,
           "signature": "void __cdecl WillowCombatLogic::Sub_006117F0(void* a1)"
         },
         {
